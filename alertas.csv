@@ -1,0 +1,4 @@
+proceso,estado_nuevo,fecha_nuevo,cliente_nuevo,email_nuevo,estado_anterior,fecha_anterior,cliente_anterior,email_anterior
+11001310300120230012300,En trámite,2026-05-06,Juan,nexusautomata.digital@gmail.com,Nueva actuación,2026-05-06,Juan,juan@email.com
+11001310300120230045600,En trámite,2026-05-06,Juan,nexusautomata.digital@gmail.com,Sin cambios,2026-05-06,Juan,juan@email.com
+11001310300120230078900,Sin cambios,2026-05-06,Ana,nexusautomata.digital@gmail.com,En trámite,2026-05-06,Ana,ana@email.com
