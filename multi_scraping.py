@@ -1,3 +1,7 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 import pandas as pd
 import psycopg2
 import time
@@ -29,13 +33,13 @@ print(df_clientes)
 
 conn = psycopg2.connect(
 
-    host="aws-1-us-west-1.pooler.supabase.com",
+    host=os.getenv("DB_HOST")
 
     database="postgres",
 
     user="postgres.xnreltwbbledefdygwmc",
 
-    password="n%&GvQFDyL-!2+8",
+    password=os.getenv("DB_PASSWORD")
 
     port="5432",
 

@@ -1,0 +1,8 @@
+streamlit
+pandas
+psycopg2-binary
+selenium
+webdriver-manager
+sib-api-v3-sdk
+twilio
+python-dotenv
