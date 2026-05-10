@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
 import psycopg2
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ======================================
 # CONFIG PAGINA
@@ -17,11 +21,12 @@ st.set_page_config(
 
 conn = psycopg2.connect(
 
-    host="aws-1-us-west-1.pooler.supabase.com",
-    database="postgres",
-    user="postgres.xnreltwbbledefdygwmc",
-    password="n%&GvQFDyL-!2+8",
-    port="5432"
+    host=os.getenv("DB_HOST"),
+    database=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    port=os.getenv("DB_PORT"),
+    sslmode="require"
 
 )
 
