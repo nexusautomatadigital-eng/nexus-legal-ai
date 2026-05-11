@@ -1,8 +1,8 @@
 streamlit
 pandas
 psycopg2-binary
+python-dotenv
 selenium
 webdriver-manager
-sib-api-v3-sdk
 twilio
-python-dotenv
+sib-api-v3-sdk
