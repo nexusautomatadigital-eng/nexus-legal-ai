@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import psycopg2
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,51 +32,172 @@ conn = psycopg2.connect(
 cursor = conn.cursor()
 
 # ======================================
+# SIDEBAR
+# ======================================
+
+st.sidebar.title("⚖️ Nexus Legal AI")
+
+menu = st.sidebar.selectbox(
+
+    "Seleccione",
+
+    ["Login", "Crear Cuenta"]
+
+)
+
+# ======================================
+# CREAR CUENTA
+# ======================================
+
+if menu == "Crear Cuenta":
+
+    st.title("📝 Crear Cuenta")
+
+    with st.form("registro"):
+
+        nuevo_nombre = st.text_input("Nombre Completo")
+
+        nuevo_usuario = st.text_input("Usuario")
+
+        nuevo_password = st.text_input(
+            "Password",
+            type="password"
+        )
+
+        nuevo_email = st.text_input("Email")
+
+        nuevo_whatsapp = st.text_input(
+            "WhatsApp"
+        )
+
+        crear = st.form_submit_button(
+            "Crear Cuenta"
+        )
+
+        if crear:
+
+            # VALIDAR USUARIO EXISTENTE
+
+            cursor.execute("""
+
+            SELECT *
+
+            FROM clientes
+
+            WHERE usuario = %s
+
+            """, (nuevo_usuario,))
+
+            existe = cursor.fetchone()
+
+            if existe:
+
+                st.error(
+                    "❌ Usuario ya existe"
+                )
+
+            else:
+
+                cursor.execute("""
+
+                INSERT INTO clientes (
+
+                    nombre,
+                    usuario,
+                    password,
+                    email,
+                    whatsapp,
+                    plan
+
+                )
+
+                VALUES (%s, %s, %s, %s, %s, %s)
+
+                """, (
+
+                    nuevo_nombre,
+                    nuevo_usuario,
+                    nuevo_password,
+                    nuevo_email,
+                    nuevo_whatsapp,
+                    "BASICO"
+
+                ))
+
+                conn.commit()
+
+                st.success(
+                    "✅ Cuenta creada correctamente"
+                )
+
+                st.info(
+                    "Ahora puede iniciar sesión"
+                )
+
+    st.stop()
+
+# ======================================
 # LOGIN
 # ======================================
 
-st.sidebar.title("🔐 Login")
-
-usuario = st.sidebar.text_input("Usuario")
+usuario = st.sidebar.text_input(
+    "Usuario"
+)
 
 password = st.sidebar.text_input(
     "Password",
     type="password"
 )
 
-# ======================================
-# VALIDAR LOGIN
-# ======================================
-
-query_login = f"""
-
-SELECT *
-
-FROM clientes
-
-WHERE usuario = '{usuario}'
-
-AND password = '{password}'
-
-"""
-
-df_login = pd.read_sql(
-    query_login,
-    conn
-)
-
-if df_login.empty:
+if not usuario or not password:
 
     st.warning("Ingrese credenciales")
 
     st.stop()
 
-cliente_logueado = df_login.iloc[0]["nombre"]
+# ======================================
+# LOGIN SQL
+# ======================================
 
-plan_cliente = df_login.iloc[0]["plan"]
+cursor.execute("""
+
+SELECT *
+
+FROM clientes
+
+WHERE usuario = %s
+
+AND password = %s
+
+""", (
+
+    usuario,
+    password
+
+))
+
+resultado = cursor.fetchone()
+
+if not resultado:
+
+    st.error("❌ Usuario inválido")
+
+    st.stop()
+
+# ======================================
+# DATOS CLIENTE
+# ======================================
+
+cliente_logueado = resultado[1]
+usuario_logueado = resultado[2]
+plan_cliente = resultado[4]
 
 st.sidebar.success(
     f"Bienvenido {cliente_logueado}"
+)
+
+st.sidebar.info(
+    f"Plan: {plan_cliente}"
 )
 
 # ======================================
@@ -89,18 +209,28 @@ if usuario == "admin":
     st.title("⚙️ Panel Administrador")
 
     # ======================================
-    # METRICAS
+    # CONSULTAS
     # ======================================
 
-    df_total_clientes = pd.read_sql(
-        "SELECT * FROM clientes",
+    df_clientes = pd.read_sql(
+
+        "SELECT * FROM clientes ORDER BY id DESC",
+
         conn
+
     )
 
-    df_total_procesos = pd.read_sql(
-        "SELECT * FROM procesos",
+    df_procesos = pd.read_sql(
+
+        "SELECT * FROM procesos ORDER BY id DESC",
+
         conn
+
     )
+
+    # ======================================
+    # METRICAS
+    # ======================================
 
     col1, col2 = st.columns(2)
 
@@ -108,14 +238,14 @@ if usuario == "admin":
 
         st.metric(
             "Clientes",
-            len(df_total_clientes)
+            len(df_clientes)
         )
 
     with col2:
 
         st.metric(
             "Procesos",
-            len(df_total_procesos)
+            len(df_procesos)
         )
 
     # ======================================
@@ -125,69 +255,9 @@ if usuario == "admin":
     st.subheader("👥 Clientes")
 
     st.dataframe(
-        df_total_clientes,
+        df_clientes,
         use_container_width=True
     )
-
-    # ======================================
-    # CREAR CLIENTE
-    # ======================================
-
-    st.subheader("➕ Crear Cliente")
-
-    with st.form("crear_cliente"):
-
-        nuevo_nombre = st.text_input("Nombre")
-
-        nuevo_usuario = st.text_input("Usuario")
-
-        nuevo_password = st.text_input(
-            "Password",
-            type="password"
-        )
-
-        nuevo_plan = st.selectbox(
-            "Plan",
-            ["BASICO", "PREMIUM", "GOLD"]
-        )
-
-        nuevo_email = st.text_input("Email")
-
-        crear = st.form_submit_button(
-            "Crear Cliente"
-        )
-
-        if crear:
-
-            cursor.execute("""
-
-            INSERT INTO clientes (
-
-                nombre,
-                usuario,
-                password,
-                plan,
-                email
-
-            )
-
-            VALUES (%s, %s, %s, %s, %s)
-
-            """, (
-
-                nuevo_nombre,
-                nuevo_usuario,
-                nuevo_password,
-                nuevo_plan,
-                nuevo_email
-
-            ))
-
-            conn.commit()
-
-            st.success("✅ Cliente creado")
-
-            st.rerun()
 
     # ======================================
     # EDITAR CLIENTE
@@ -196,39 +266,59 @@ if usuario == "admin":
     st.subheader("✏️ Editar Cliente")
 
     cliente_editar = st.selectbox(
-        "Seleccionar cliente",
-        df_total_clientes["usuario"]
+
+        "Seleccione Cliente",
+
+        df_clientes["usuario"]
+
     )
 
-    datos_cliente = df_total_clientes[
-        df_total_clientes["usuario"] == cliente_editar
+    datos_cliente = df_clientes[
+
+        df_clientes["usuario"] == cliente_editar
+
     ].iloc[0]
 
     with st.form("editar_cliente"):
 
         edit_nombre = st.text_input(
+
             "Nombre",
+
             value=datos_cliente["nombre"]
+
         )
 
         edit_password = st.text_input(
+
             "Password",
+
             value=datos_cliente["password"]
+
         )
 
         edit_plan = st.selectbox(
+
             "Plan",
+
             ["BASICO", "PREMIUM", "GOLD"],
+
             index=[
+
                 "BASICO",
                 "PREMIUM",
                 "GOLD"
+
             ].index(datos_cliente["plan"])
+
         )
 
         edit_email = st.text_input(
+
             "Email",
+
             value=datos_cliente["email"]
+
         )
 
         guardar = st.form_submit_button(
@@ -275,19 +365,23 @@ if usuario == "admin":
     st.subheader("⚖️ Asignar Proceso")
 
     cliente_proceso = st.selectbox(
+
         "Cliente",
-        df_total_clientes["nombre"],
+
+        df_clientes["nombre"],
+
         key="cliente_proceso"
+
     )
 
     with st.form("asignar_proceso"):
 
         nuevo_proceso = st.text_input(
-            "Número Proceso"
+            "Número de proceso"
         )
 
         asignar = st.form_submit_button(
-            "Asignar"
+            "Asignar Proceso"
         )
 
         if asignar:
@@ -319,40 +413,17 @@ if usuario == "admin":
             st.rerun()
 
     # ======================================
-    # VER PROCESOS
+    # PROCESOS
     # ======================================
-
-    # ======================================
-    # ACTUALIZAR PROCESOS
-    # ======================================
-
-    st.subheader("🔄 Actualizar Procesos")
-
-    if st.button("Ejecutar Scraping Judicial"):
-
-        import os
-
-        resultado = os.system(
-            "python multi_scraping.py"
-        )
-
-        if resultado == 0:
-
-            st.success(
-                "✅ Procesos actualizados"
-            )
-
-        else:
-
-            st.error(
-                "❌ Error ejecutando scraping"
-            )
 
     st.subheader("📂 Procesos")
 
     st.dataframe(
-        df_total_procesos,
+
+        df_procesos,
+
         use_container_width=True
+
     )
 
 # ======================================
@@ -361,31 +432,80 @@ if usuario == "admin":
 
 else:
 
+    st.title("⚖️ Nexus Legal AI")
+
+    st.subheader(
+        f"Procesos judiciales de {cliente_logueado}"
+    )
+
+    # ======================================
+    # AUTO AGREGAR PROCESO
+    # ======================================
+
+    st.subheader("➕ Agregar Proceso")
+
+    with st.form("nuevo_proceso_cliente"):
+
+        nuevo_proceso_cliente = st.text_input(
+            "Número proceso judicial"
+        )
+
+        agregar = st.form_submit_button(
+            "Agregar Proceso"
+        )
+
+        if agregar:
+
+            cursor.execute("""
+
+            INSERT INTO procesos (
+
+                cliente,
+                numero_proceso
+
+            )
+
+            VALUES (%s, %s)
+
+            """, (
+
+                cliente_logueado,
+                nuevo_proceso_cliente
+
+            ))
+
+            conn.commit()
+
+            st.success(
+                "✅ Proceso agregado"
+            )
+
+            st.rerun()
+
     # ======================================
     # CONSULTAR PROCESOS
     # ======================================
 
-    query = f"""
+    query = """
 
     SELECT *
 
     FROM procesos
 
-    WHERE cliente = '{cliente_logueado}'
+    WHERE cliente = %s
 
     ORDER BY id DESC
 
     """
 
     df = pd.read_sql(
+
         query,
-        conn
-    )
 
-    st.title("⚖️ Nexus Legal AI")
+        conn,
 
-    st.subheader(
-        f"Procesos judiciales de {cliente_logueado}"
+        params=(cliente_logueado,)
+
     )
 
     if df.empty:
@@ -438,19 +558,24 @@ else:
     # FILTRO JUZGADO
     # ======================================
 
-    st.subheader("🔎 Filtrar Juzgado")
+    st.subheader("🔎 Filtrar por Juzgado")
 
     juzgados = df["juzgado"].dropna().unique()
 
     if len(juzgados) > 0:
 
         juzgado_select = st.selectbox(
-            "Seleccione juzgado",
+
+            "Seleccione Juzgado",
+
             juzgados
+
         )
 
         df_juzgado = df[
+
             df["juzgado"] == juzgado_select
+
         ]
 
         st.dataframe(
