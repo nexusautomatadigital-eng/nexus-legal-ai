@@ -6,25 +6,33 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ======================================
-# CONFIG PAGINA
+# CONFIG
 # ======================================
 
 st.set_page_config(
+
     page_title="Nexus Legal AI",
+
     layout="wide"
+
 )
 
 # ======================================
-# CONEXION POSTGRESQL
+# CONEXION
 # ======================================
 
 conn = psycopg2.connect(
 
     host=st.secrets["SUPABASE_HOST"],
+
     database=st.secrets["SUPABASE_DB"],
+
     user=st.secrets["SUPABASE_USER"],
+
     password=st.secrets["SUPABASE_PASSWORD"],
+
     port=st.secrets["SUPABASE_PORT"],
+
     sslmode="require"
 
 )
@@ -37,15 +45,12 @@ cursor = conn.cursor()
 
 st.sidebar.title("⚖️ Nexus Legal AI")
 
-# ======================================
-# MENU USUARIO
-# ======================================
-
 st.sidebar.markdown("### 🔐 Iniciar Sesión")
 
 nuevo_usuario = st.sidebar.checkbox(
     "¿Eres nuevo? Crear cuenta"
 )
+
 # ======================================
 # CREAR CUENTA
 # ======================================
@@ -56,16 +61,25 @@ if nuevo_usuario:
 
     with st.form("registro"):
 
-        nuevo_nombre = st.text_input("Nombre Completo")
-
-        nuevo_usuario = st.text_input("Usuario")
-
-        nuevo_password = st.text_input(
-            "Password",
-            type="password"
+        nuevo_nombre = st.text_input(
+            "Nombre Completo"
         )
 
-        nuevo_email = st.text_input("Email")
+        nuevo_usuario_input = st.text_input(
+            "Usuario"
+        )
+
+        nuevo_password = st.text_input(
+
+            "Password",
+
+            type="password"
+
+        )
+
+        nuevo_email = st.text_input(
+            "Email"
+        )
 
         nuevo_whatsapp = st.text_input(
             "WhatsApp"
@@ -77,7 +91,7 @@ if nuevo_usuario:
 
         if crear:
 
-            # VALIDAR USUARIO EXISTENTE
+            # VALIDAR USUARIO
 
             cursor.execute("""
 
@@ -87,7 +101,11 @@ if nuevo_usuario:
 
             WHERE usuario = %s
 
-            """, (nuevo_usuario,))
+            """, (
+
+                nuevo_usuario_input,
+
+            ))
 
             existe = cursor.fetchone()
 
@@ -106,9 +124,9 @@ if nuevo_usuario:
                     nombre,
                     usuario,
                     password,
+                    plan,
                     email,
-                    whatsapp,
-                    plan
+                    whatsapp
 
                 )
 
@@ -117,42 +135,61 @@ if nuevo_usuario:
                 """, (
 
                     nuevo_nombre,
-                    nuevo_usuario,
+                    nuevo_usuario_input,
                     nuevo_password,
+                    "BASICO",
                     nuevo_email,
-                    nuevo_whatsapp,
-                    "BASICO"
+                    nuevo_whatsapp
 
                 ))
 
                 conn.commit()
 
+                # LOGIN AUTOMATICO
+
+                st.session_state["usuario"] = (
+                    nuevo_usuario_input
+                )
+
+                st.session_state["password"] = (
+                    nuevo_password
+                )
+
                 st.success(
                     "✅ Cuenta creada correctamente"
                 )
 
-                st.info(
-                    "Ahora puede iniciar sesión"
-                )
-
-    st.stop()
+                st.rerun()
 
 # ======================================
 # LOGIN
 # ======================================
 
 usuario = st.sidebar.text_input(
-    "Usuario"
+
+    "Usuario",
+
+    value=st.session_state.get(
+        "usuario",
+        ""
+    )
+
 )
 
 password = st.sidebar.text_input(
+
     "Password",
-    type="password"
+
+    type="password",
+
+    value=st.session_state.get(
+        "password",
+        ""
+    )
+
 )
 
 if not usuario or not password:
-
-    st.warning("Ingrese credenciales")
 
     st.stop()
 
@@ -173,6 +210,7 @@ AND password = %s
 """, (
 
     usuario,
+
     password
 
 ))
@@ -190,8 +228,18 @@ if not resultado:
 # ======================================
 
 cliente_logueado = resultado[1]
+
 usuario_logueado = resultado[2]
+
 plan_cliente = resultado[4]
+
+email_cliente = resultado[5]
+
+whatsapp_cliente = resultado[6]
+
+# ======================================
+# SIDEBAR INFO
+# ======================================
 
 st.sidebar.success(
     f"Bienvenido {cliente_logueado}"
@@ -256,108 +304,12 @@ if usuario == "admin":
     st.subheader("👥 Clientes")
 
     st.dataframe(
+
         df_clientes,
+
         use_container_width=True
-    )
-
-    # ======================================
-    # EDITAR CLIENTE
-    # ======================================
-
-    st.subheader("✏️ Editar Cliente")
-
-    cliente_editar = st.selectbox(
-
-        "Seleccione Cliente",
-
-        df_clientes["usuario"]
 
     )
-
-    datos_cliente = df_clientes[
-
-        df_clientes["usuario"] == cliente_editar
-
-    ].iloc[0]
-
-    with st.form("editar_cliente"):
-
-        edit_nombre = st.text_input(
-
-            "Nombre",
-
-            value=datos_cliente["nombre"]
-
-        )
-
-        edit_password = st.text_input(
-
-            "Password",
-
-            value=datos_cliente["password"]
-
-        )
-
-        edit_plan = st.selectbox(
-
-            "Plan",
-
-            ["BASICO", "PREMIUM", "GOLD"],
-
-            index=[
-
-                "BASICO",
-                "PREMIUM",
-                "GOLD"
-
-            ].index(datos_cliente["plan"])
-
-        )
-
-        edit_email = st.text_input(
-
-            "Email",
-
-            value=datos_cliente["email"]
-
-        )
-
-        guardar = st.form_submit_button(
-            "Guardar Cambios"
-        )
-
-        if guardar:
-
-            cursor.execute("""
-
-            UPDATE clientes
-
-            SET
-
-                nombre = %s,
-                password = %s,
-                plan = %s,
-                email = %s
-
-            WHERE usuario = %s
-
-            """, (
-
-                edit_nombre,
-                edit_password,
-                edit_plan,
-                edit_email,
-                cliente_editar
-
-            ))
-
-            conn.commit()
-
-            st.success(
-                "✅ Cliente actualizado"
-            )
-
-            st.rerun()
 
     # ======================================
     # ASIGNAR PROCESO
@@ -369,20 +321,18 @@ if usuario == "admin":
 
         "Cliente",
 
-        df_clientes["nombre"],
-
-        key="cliente_proceso"
+        df_clientes["nombre"]
 
     )
 
     with st.form("asignar_proceso"):
 
         nuevo_proceso = st.text_input(
-            "Número de proceso"
+            "Número Proceso"
         )
 
         asignar = st.form_submit_button(
-            "Asignar Proceso"
+            "Asignar"
         )
 
         if asignar:
@@ -392,15 +342,21 @@ if usuario == "admin":
             INSERT INTO procesos (
 
                 cliente,
+                email,
+                whatsapp,
+                plan,
                 numero_proceso
 
             )
 
-            VALUES (%s, %s)
+            VALUES (%s, %s, %s, %s, %s)
 
             """, (
 
                 cliente_proceso,
+                "",
+                "",
+                "",
                 nuevo_proceso
 
             ))
@@ -414,7 +370,7 @@ if usuario == "admin":
             st.rerun()
 
     # ======================================
-    # PROCESOS
+    # VER PROCESOS
     # ======================================
 
     st.subheader("📂 Procesos")
@@ -436,16 +392,18 @@ else:
     st.title("⚖️ Nexus Legal AI")
 
     st.subheader(
+
         f"Procesos judiciales de {cliente_logueado}"
+
     )
 
     # ======================================
-    # AUTO AGREGAR PROCESO
+    # AGREGAR PROCESO
     # ======================================
 
     st.subheader("➕ Agregar Proceso")
 
-    with st.form("nuevo_proceso_cliente"):
+    with st.form("nuevo_proceso"):
 
         nuevo_proceso_cliente = st.text_input(
             "Número proceso judicial"
@@ -462,15 +420,21 @@ else:
             INSERT INTO procesos (
 
                 cliente,
+                email,
+                whatsapp,
+                plan,
                 numero_proceso
 
             )
 
-            VALUES (%s, %s)
+            VALUES (%s, %s, %s, %s, %s)
 
             """, (
 
                 cliente_logueado,
+                email_cliente,
+                whatsapp_cliente,
+                plan_cliente,
                 nuevo_proceso_cliente
 
             ))
@@ -551,12 +515,15 @@ else:
     st.subheader("📂 Procesos")
 
     st.dataframe(
+
         df,
+
         use_container_width=True
+
     )
 
     # ======================================
-    # FILTRO JUZGADO
+    # FILTRO
     # ======================================
 
     st.subheader("🔎 Filtrar por Juzgado")
@@ -580,12 +547,15 @@ else:
         ]
 
         st.dataframe(
+
             df_juzgado,
+
             use_container_width=True
+
         )
 
 # ======================================
-# CERRAR CONEXION
+# CERRAR
 # ======================================
 
 conn.close()
