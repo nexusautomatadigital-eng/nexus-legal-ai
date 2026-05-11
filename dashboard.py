@@ -37,19 +37,20 @@ cursor = conn.cursor()
 
 st.sidebar.title("⚖️ Nexus Legal AI")
 
-menu = st.sidebar.selectbox(
+# ======================================
+# MENU USUARIO
+# ======================================
 
-    "Seleccione",
+st.sidebar.markdown("### 🔐 Iniciar Sesión")
 
-    ["Login", "Crear Cuenta"]
-
+nuevo_usuario = st.sidebar.checkbox(
+    "¿Eres nuevo? Crear cuenta"
 )
-
 # ======================================
 # CREAR CUENTA
 # ======================================
 
-if menu == "Crear Cuenta":
+if nuevo_usuario:
 
     st.title("📝 Crear Cuenta")
 
