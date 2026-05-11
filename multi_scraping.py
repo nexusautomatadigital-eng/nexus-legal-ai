@@ -33,20 +33,19 @@ print(df_clientes)
 
 conn = psycopg2.connect(
 
-    host=os.getenv("DB_HOST")
+    host=os.getenv("SUPABASE_HOST"),
 
-    database="postgres",
+    database=os.getenv("SUPABASE_DB"),
 
-    user="postgres.xnreltwbbledefdygwmc",
+    user=os.getenv("SUPABASE_USER"),
 
-    password=os.getenv("DB_PASSWORD")
+    password=os.getenv("SUPABASE_PASSWORD"),
 
-    port="5432",
+    port=os.getenv("SUPABASE_PORT"),
 
     sslmode="require"
 
 )
-
 cursor = conn.cursor()
 
 # ======================================
