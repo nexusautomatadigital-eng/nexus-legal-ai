@@ -21,11 +21,11 @@ st.set_page_config(
 
 conn = psycopg2.connect(
 
-    host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_NAME"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    port=os.getenv("DB_PORT"),
+    host=st.secrets["SUPABASE_HOST"],
+    database=st.secrets["SUPABASE_DB"],
+    user=st.secrets["SUPABASE_USER"],
+    password=st.secrets["SUPABASE_PASSWORD"],
+    port=st.secrets["SUPABASE_PORT"],
     sslmode="require"
 
 )
