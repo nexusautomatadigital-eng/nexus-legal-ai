@@ -38,10 +38,29 @@ st.sidebar.title("⚖️ Nexus Legal AI")
 
 st.sidebar.markdown("### 🔐 Iniciar Sesión")
 
-nuevo_usuario = st.sidebar.checkbox(
-    "¿Eres nuevo? Crear cuenta",
-    key="nuevo_usuario"
-)
+# ======================================
+# NAVEGACION
+# ======================================
+
+if "pagina" not in st.session_state:
+    st.session_state.pagina = "login"
+
+col1, col2 = st.sidebar.columns(2)
+
+with col1:
+
+    if st.button("Login"):
+        st.session_state.pagina = "login"
+
+with col2:
+
+    if st.button("Registro"):
+        st.session_state.pagina = "registro"
+
+nuevo_usuario = (
+     st.session_state.pagina == "registro"
+
+)           
 
 # ======================================
 # CREAR CUENTA
@@ -166,10 +185,8 @@ if nuevo_usuario:
                     "✅ Cuenta creada correctamente"
                 )
 
-                st.info(
-                    "🔐 Ahora inicia sesión con tus credenciales."
-                )
-
+                st.session_state.pagina = "login"
+            
                 st.rerun()
 
 # ======================================
