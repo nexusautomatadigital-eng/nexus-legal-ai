@@ -161,11 +161,13 @@ if nuevo_usuario:
                     nuevo_password
                 )
 
-                # DESACTIVAR CREAR CUENTA
-                st.session_state["nuevo_usuario"] = False
-
+                        
                 st.success(
                     "✅ Cuenta creada correctamente"
+                )
+
+                st.info(
+                    "🔐 Ahora inicia sesión con tus credenciales."
                 )
 
                 st.rerun()
