@@ -1,4 +1,4 @@
-mport streamlit as st
+import streamlit as st
 import pandas as pd
 import psycopg2
 import bcrypt
@@ -14,6 +14,27 @@ st.set_page_config(
     page_title="Nexus Legal AI",
     layout="wide"
 )
+
+# ======================================
+# EVITAR AUTOCOMPLETE CHROME
+# ======================================
+
+st.markdown("""
+
+<style>
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+
+    transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: black !important;
+
+}
+
+</style>
+
+""", unsafe_allow_html=True)
 
 # ======================================
 # CONEXION POSTGRESQL
@@ -50,20 +71,21 @@ col1, col2 = st.sidebar.columns(2)
 with col1:
 
     if st.button("Login"):
+
         st.session_state.pagina = "login"
 
 with col2:
 
     if st.button("Registro"):
+
         st.session_state.pagina = "registro"
 
 nuevo_usuario = (
-     st.session_state.pagina == "registro"
-
-)           
+    st.session_state.pagina == "registro"
+)
 
 # ======================================
-# CREAR CUENTA
+# REGISTRO
 # ======================================
 
 if nuevo_usuario:
@@ -99,10 +121,6 @@ if nuevo_usuario:
 
         if crear:
 
-            # ======================================
-            # VALIDAR USUARIO
-            # ======================================
-
             cursor.execute("""
 
             SELECT id
@@ -137,7 +155,7 @@ if nuevo_usuario:
                 ).decode()
 
                 # ======================================
-                # INSERTAR CLIENTE
+                # INSERTAR
                 # ======================================
 
                 cursor.execute("""
@@ -168,60 +186,38 @@ if nuevo_usuario:
 
                 conn.commit()
 
-                # ======================================
-                # LOGIN AUTOMATICO
-                # ======================================
-
-                st.session_state["usuario"] = (
-                    nuevo_usuario_input
-                )
-
-                st.session_state["password"] = (
-                    nuevo_password
-                )
-
-                        
                 st.success(
                     "✅ Cuenta creada correctamente"
                 )
 
+                st.info(
+                    "🔐 Ahora inicia sesión."
+                )
+
                 st.session_state.pagina = "login"
-            
+
                 st.rerun()
+
+    st.stop()
 
 # ======================================
 # LOGIN
 # ======================================
 
 usuario = st.sidebar.text_input(
-
     "Usuario",
-
-    value=st.session_state.get(
-        "usuario",
-        ""
-    )
-
+    key="login_usuario"
 )
 
 password = st.sidebar.text_input(
-
     "Password",
-
     type="password",
-
-    value=st.session_state.get(
-        "password",
-        ""
-    )
-
+    key="login_password"
 )
 
-if nuevo_usuario:
-    st.stop()
-
 if not usuario or not password:
-    st.stop()  
+
+    st.stop()
 
 # ======================================
 # BUSCAR USUARIO
@@ -249,17 +245,57 @@ resultado = cursor.fetchone()
 
 if not resultado:
 
-    st.error("❌ Usuario inválido")
+    st.error(
+        "❌ Usuario inválido"
+    )
 
     st.stop()
 
 password_guardado = resultado[3]
 
 # ======================================
-# VALIDAR HASH PASSWORD
+# VALIDAR PASSWORD
 # ======================================
 
-try:
+password_correcto = False
+
+# ======================================
+# PASSWORD ANTIGUA
+# ======================================
+
+if not password_guardado.startswith("$2b$"):
+
+    if password == password_guardado:
+
+        password_correcto = True
+
+        nuevo_hash = bcrypt.hashpw(
+            password.encode(),
+            bcrypt.gensalt()
+        ).decode()
+
+        cursor.execute("""
+
+        UPDATE clientes
+
+        SET password = %s
+
+        WHERE usuario = %s
+
+        """, (
+
+            nuevo_hash,
+            usuario
+
+        ))
+
+        conn.commit()
+
+# ======================================
+# PASSWORD BCRYPT
+# ======================================
+
+else:
 
     password_correcto = bcrypt.checkpw(
 
@@ -269,17 +305,15 @@ try:
 
     )
 
-except Exception:
-
-    st.error(
-        "❌ Usuario con password antigua insegura. Cree nuevamente la cuenta."
-    )
-
-    st.stop()
+# ======================================
+# PASSWORD INCORRECTO
+# ======================================
 
 if not password_correcto:
 
-    st.error("❌ Password incorrecto")
+    st.error(
+        "❌ Password incorrecto"
+    )
 
     st.stop()
 
@@ -288,8 +322,6 @@ if not password_correcto:
 # ======================================
 
 cliente_logueado = resultado[1]
-
-usuario_logueado = resultado[2]
 
 email_cliente = resultado[4]
 
@@ -320,7 +352,7 @@ if st.sidebar.button("Cerrar Sesión"):
     st.rerun()
 
 # ======================================
-# PANEL ADMIN
+# ADMIN
 # ======================================
 
 if usuario == "admin":
@@ -337,125 +369,12 @@ if usuario == "admin":
         conn
     )
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.metric(
-            "Clientes",
-            len(df_clientes)
-        )
-
-    with col2:
-
-        st.metric(
-            "Procesos",
-            len(df_procesos)
-        )
-
     st.subheader("👥 Clientes")
 
     st.dataframe(
         df_clientes,
         use_container_width=True
     )
-
-    # ======================================
-    # AGREGAR PROCESO ADMIN
-    # ======================================
-
-    st.subheader("➕ Agregar Proceso")
-
-    cliente_proceso = st.selectbox(
-        "Cliente",
-        df_clientes["nombre"]
-    )
-
-    datos_cliente_admin = df_clientes[
-        df_clientes["nombre"] == cliente_proceso
-    ].iloc[0]
-
-    with st.form(
-        "nuevo_proceso_admin",
-        clear_on_submit=True
-    ):
-
-        nuevo_proceso = st.text_input(
-            "Número proceso judicial"
-        )
-
-        asignar = st.form_submit_button(
-            "Agregar Proceso"
-        )
-
-        if asignar:
-
-            if not nuevo_proceso.strip():
-
-                st.warning(
-                    "⚠️ Ingrese un número de proceso"
-                )
-
-            else:
-
-                cursor.execute("""
-
-                SELECT id
-
-                FROM procesos
-
-                WHERE cliente = %s
-
-                AND numero_proceso = %s
-
-                """, (
-
-                    cliente_proceso,
-                    nuevo_proceso
-
-                ))
-
-                proceso_existente = cursor.fetchone()
-
-                if proceso_existente:
-
-                    st.warning(
-                        "⚠️ El proceso ya existe"
-                    )
-
-                else:
-
-                    cursor.execute("""
-
-                    INSERT INTO procesos (
-
-                        cliente,
-                        email,
-                        whatsapp,
-                        plan,
-                        numero_proceso
-
-                    )
-
-                    VALUES (%s, %s, %s, %s, %s)
-
-                    """, (
-
-                        cliente_proceso,
-                        datos_cliente_admin["email"],
-                        datos_cliente_admin["whatsapp"],
-                        datos_cliente_admin["plan"],
-                        nuevo_proceso
-
-                    ))
-
-                    conn.commit()
-
-                    st.success(
-                        "✅ Proceso agregado correctamente"
-                    )
-
-                    st.rerun()
 
     st.subheader("📂 Procesos")
 
@@ -497,78 +416,70 @@ else:
 
         if agregar:
 
-            if not nuevo_proceso_cliente.strip():
+            cursor.execute("""
+
+            SELECT id
+
+            FROM procesos
+
+            WHERE cliente = %s
+
+            AND numero_proceso = %s
+
+            """, (
+
+                cliente_logueado,
+                nuevo_proceso_cliente
+
+            ))
+
+            proceso_existente = cursor.fetchone()
+
+            if proceso_existente:
 
                 st.warning(
-                    "⚠️ Ingrese un número de proceso"
+                    "⚠️ El proceso ya existe"
                 )
 
             else:
 
                 cursor.execute("""
 
-                SELECT id
+                INSERT INTO procesos (
 
-                FROM procesos
+                    cliente,
+                    email,
+                    whatsapp,
+                    plan,
+                    numero_proceso
 
-                WHERE cliente = %s
+                )
 
-                AND numero_proceso = %s
+                VALUES (%s, %s, %s, %s, %s)
 
                 """, (
 
                     cliente_logueado,
+                    email_cliente,
+                    whatsapp_cliente,
+                    plan_cliente,
                     nuevo_proceso_cliente
 
                 ))
 
-                proceso_existente = cursor.fetchone()
+                conn.commit()
 
-                if proceso_existente:
+                st.success(
+                    "✅ Proceso agregado correctamente"
+                )
 
-                    st.warning(
-                        "⚠️ El proceso ya existe"
-                    )
-
-                else:
-
-                    cursor.execute("""
-
-                    INSERT INTO procesos (
-
-                        cliente,
-                        email,
-                        whatsapp,
-                        plan,
-                        numero_proceso
-
-                    )
-
-                    VALUES (%s, %s, %s, %s, %s)
-
-                    """, (
-
-                        cliente_logueado,
-                        email_cliente,
-                        whatsapp_cliente,
-                        plan_cliente,
-                        nuevo_proceso_cliente
-
-                    ))
-
-                    conn.commit()
-
-                    st.success(
-                        "✅ Proceso agregado correctamente"
-                    )
-
-                    st.rerun()
+                st.rerun()
 
     # ======================================
     # CONSULTAR PROCESOS
     # ======================================
 
-    query = """
+    df = pd.read_sql("""
 
     SELECT *
 
@@ -578,13 +489,7 @@ else:
 
     ORDER BY id DESC
 
-    """
-
-    df = pd.read_sql(
-        query,
-        conn,
-        params=(cliente_logueado,)
-    )
+    """, conn, params=(cliente_logueado,))
 
     if df.empty:
 
@@ -593,10 +498,6 @@ else:
         )
 
         st.stop()
-
-    # ======================================
-    # METRICAS
-    # ======================================
 
     col1, col2, col3 = st.columns(3)
 
@@ -627,40 +528,12 @@ else:
             plan_cliente
         )
 
-    # ======================================
-    # TABLA
-    # ======================================
-
     st.subheader("📂 Procesos")
 
     st.dataframe(
         df,
         use_container_width=True
     )
-
-    # ======================================
-    # FILTRO JUZGADO
-    # ======================================
-
-    st.subheader("🔎 Filtrar por Juzgado")
-
-    juzgados = df["juzgado"].dropna().unique()
-
-    if len(juzgados) > 0:
-
-        juzgado_select = st.selectbox(
-            "Seleccione Juzgado",
-            juzgados
-        )
-
-        df_juzgado = df[
-            df["juzgado"] == juzgado_select
-        ]
-
-        st.dataframe(
-            df_juzgado,
-            use_container_width=True
-        )
 
 # ======================================
 # CERRAR CONEXION
