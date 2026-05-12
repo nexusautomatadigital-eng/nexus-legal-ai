@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # ======================================
-# CONEXION
+# CONEXION POSTGRESQL
 # ======================================
 
 conn = psycopg2.connect(
@@ -48,7 +48,11 @@ st.sidebar.title("⚖️ Nexus Legal AI")
 st.sidebar.markdown("### 🔐 Iniciar Sesión")
 
 nuevo_usuario = st.sidebar.checkbox(
-    "¿Eres nuevo? Crear cuenta"
+
+    "¿Eres nuevo? Crear cuenta",
+
+    key="nuevo_usuario"
+
 )
 
 # ======================================
@@ -91,7 +95,9 @@ if nuevo_usuario:
 
         if crear:
 
+            # ======================================
             # VALIDAR USUARIO
+            # ======================================
 
             cursor.execute("""
 
@@ -117,6 +123,10 @@ if nuevo_usuario:
 
             else:
 
+                # ======================================
+                # INSERTAR CLIENTE
+                # ======================================
+
                 cursor.execute("""
 
                 INSERT INTO clientes (
@@ -124,9 +134,9 @@ if nuevo_usuario:
                     nombre,
                     usuario,
                     password,
-                    plan,
                     email,
-                    whatsapp
+                    whatsapp,
+                    plan
 
                 )
 
@@ -137,15 +147,17 @@ if nuevo_usuario:
                     nuevo_nombre,
                     nuevo_usuario_input,
                     nuevo_password,
-                    "BASICO",
                     nuevo_email,
-                    nuevo_whatsapp
+                    nuevo_whatsapp,
+                    "BASICO"
 
                 ))
 
                 conn.commit()
 
+                # ======================================
                 # LOGIN AUTOMATICO
+                # ======================================
 
                 st.session_state["usuario"] = (
                     nuevo_usuario_input
@@ -154,6 +166,8 @@ if nuevo_usuario:
                 st.session_state["password"] = (
                     nuevo_password
                 )
+
+                st.session_state["nuevo_usuario"] = False
 
                 st.success(
                     "✅ Cuenta creada correctamente"
@@ -231,11 +245,11 @@ cliente_logueado = resultado[1]
 
 usuario_logueado = resultado[2]
 
-plan_cliente = resultado[4]
+email_cliente = resultado[4]
 
-email_cliente = resultado[5]
+whatsapp_cliente = resultado[5]
 
-whatsapp_cliente = resultado[6]
+plan_cliente = resultado[6]
 
 # ======================================
 # SIDEBAR INFO
@@ -250,7 +264,7 @@ st.sidebar.info(
 )
 
 # ======================================
-# ADMIN
+# PANEL ADMIN
 # ======================================
 
 if usuario == "admin":
@@ -325,6 +339,12 @@ if usuario == "admin":
 
     )
 
+    datos_cliente_admin = df_clientes[
+
+        df_clientes["nombre"] == cliente_proceso
+
+    ].iloc[0]
+
     with st.form("asignar_proceso"):
 
         nuevo_proceso = st.text_input(
@@ -354,9 +374,9 @@ if usuario == "admin":
             """, (
 
                 cliente_proceso,
-                "",
-                "",
-                "",
+                datos_cliente_admin["email"],
+                datos_cliente_admin["whatsapp"],
+                datos_cliente_admin["plan"],
                 nuevo_proceso
 
             ))
@@ -496,9 +516,15 @@ else:
 
     with col2:
 
+        ultima_fecha = df.iloc[0]["fecha_actuacion"]
+
+        if ultima_fecha is None:
+
+            ultima_fecha = "Sin actualizar"
+
         st.metric(
             "Última actuación",
-            str(df.iloc[0]["fecha_actuacion"])
+            str(ultima_fecha)
         )
 
     with col3:
@@ -523,7 +549,7 @@ else:
     )
 
     # ======================================
-    # FILTRO
+    # FILTRO JUZGADO
     # ======================================
 
     st.subheader("🔎 Filtrar por Juzgado")
@@ -555,7 +581,7 @@ else:
         )
 
 # ======================================
-# CERRAR
+# CERRAR CONEXION
 # ======================================
 
 conn.close()
