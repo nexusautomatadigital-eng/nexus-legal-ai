@@ -167,7 +167,6 @@ if nuevo_usuario:
                     nuevo_password
                 )
 
-                
                 st.success(
                     "✅ Cuenta creada correctamente"
                 )
@@ -325,42 +324,58 @@ if usuario == "admin":
     )
 
     # ======================================
-    # AGREGAR PROCESO
+    # AGREGAR PROCESO ADMIN
     # ======================================
 
     st.subheader("➕ Agregar Proceso")
 
-    with st.form("nuevo_proceso"):
+    cliente_proceso = st.selectbox(
 
-        nuevo_proceso_cliente = st.text_input(
+        "Cliente",
+
+        df_clientes["nombre"]
+
+    )
+
+    datos_cliente_admin = df_clientes[
+
+        df_clientes["nombre"] == cliente_proceso
+
+    ].iloc[0]
+
+    with st.form(
+
+        "nuevo_proceso_admin",
+
+        clear_on_submit=True
+
+    ):
+
+        nuevo_proceso = st.text_input(
             "Número proceso judicial"
         )
 
-        agregar = st.form_submit_button(
+        asignar = st.form_submit_button(
             "Agregar Proceso"
         )
 
-        if agregar:
+        if asignar:
 
-            # ======================================
-            # VALIDAR VACIO
-            # ======================================
-
-            if not nuevo_proceso_cliente.strip():
+            if not nuevo_proceso.strip():
 
                 st.warning(
-                    "Ingrese un número de proceso"
+                    "⚠️ Ingrese un número de proceso"
                 )
 
             else:
 
                 # ======================================
-                # VALIDAR SI YA EXISTE
+                # VALIDAR DUPLICADO
                 # ======================================
 
                 cursor.execute("""
 
-                SELECT *
+                SELECT id
 
                 FROM procesos
 
@@ -370,8 +385,8 @@ if usuario == "admin":
 
                 """, (
 
-                    cliente_logueado,
-                    nuevo_proceso_cliente
+                    cliente_proceso,
+                    nuevo_proceso
 
                 ))
 
@@ -405,11 +420,11 @@ if usuario == "admin":
 
                     """, (
 
-                        cliente_logueado,
-                        email_cliente,
-                        whatsapp_cliente,
-                        plan_cliente,
-                        nuevo_proceso_cliente
+                        cliente_proceso,
+                        datos_cliente_admin["email"],
+                        datos_cliente_admin["whatsapp"],
+                        datos_cliente_admin["plan"],
+                        nuevo_proceso
 
                     ))
 
@@ -455,7 +470,13 @@ else:
 
     st.subheader("➕ Agregar Proceso")
 
-    with st.form("nuevo_proceso"):
+    with st.form(
+
+        "nuevo_proceso",
+
+        clear_on_submit=True
+
+    ):
 
         nuevo_proceso_cliente = st.text_input(
             "Número proceso judicial"
@@ -467,40 +488,88 @@ else:
 
         if agregar:
 
+            # ======================================
+            # VALIDAR VACIO
+            # ======================================
 
+            if not nuevo_proceso_cliente.strip():
 
+                st.warning(
+                    "⚠️ Ingrese un número de proceso"
+                )
 
-            cursor.execute("""
+            else:
 
-            INSERT INTO procesos (
+                # ======================================
+                # VALIDAR DUPLICADO
+                # ======================================
 
-                cliente,
-                email,
-                whatsapp,
-                plan,
-                numero_proceso
+                cursor.execute("""
 
-            )
+                SELECT id
 
-            VALUES (%s, %s, %s, %s, %s)
+                FROM procesos
 
-            """, (
+                WHERE cliente = %s
 
-                cliente_logueado,
-                email_cliente,
-                whatsapp_cliente,
-                plan_cliente,
-                nuevo_proceso_cliente
+                AND numero_proceso = %s
 
-            ))
+                """, (
 
-            conn.commit()
+                    cliente_logueado,
+                    nuevo_proceso_cliente
 
-            st.success(
-                "✅ Proceso agregado"
-            )
+                ))
 
-            st.rerun()
+                proceso_existente = cursor.fetchone()
+
+                # ======================================
+                # SI YA EXISTE
+                # ======================================
+
+                if proceso_existente:
+
+                    st.warning(
+                        "⚠️ El proceso ya existe"
+                    )
+
+                else:
+
+                    # ======================================
+                    # INSERTAR PROCESO
+                    # ======================================
+
+                    cursor.execute("""
+
+                    INSERT INTO procesos (
+
+                        cliente,
+                        email,
+                        whatsapp,
+                        plan,
+                        numero_proceso
+
+                    )
+
+                    VALUES (%s, %s, %s, %s, %s)
+
+                    """, (
+
+                        cliente_logueado,
+                        email_cliente,
+                        whatsapp_cliente,
+                        plan_cliente,
+                        nuevo_proceso_cliente
+
+                    ))
+
+                    conn.commit()
+
+                    st.success(
+                        "✅ Proceso agregado correctamente"
+                    )
+
+                    st.rerun()
 
     # ======================================
     # CONSULTAR PROCESOS
