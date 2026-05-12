@@ -161,6 +161,9 @@ if nuevo_usuario:
                     nuevo_password
                 )
 
+                # DESACTIVAR CREAR CUENTA
+                st.session_state["nuevo_usuario"] = False
+
                 st.success(
                     "✅ Cuenta creada correctamente"
                 )
@@ -195,9 +198,11 @@ password = st.sidebar.text_input(
 
 )
 
-if not usuario or not password:
-
+if nuevo_usuario:
     st.stop()
+
+if not usuario or not password:
+    st.stop()  
 
 # ======================================
 # BUSCAR USUARIO
