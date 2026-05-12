@@ -251,7 +251,7 @@ if not resultado:
 
     st.stop()
 
-password_guardado = resultado[3]
+password_guardado = resultado[2]
 
 # ======================================
 # VALIDAR PASSWORD
@@ -321,7 +321,7 @@ if not password_correcto:
 # DATOS CLIENTE
 # ======================================
 
-cliente_logueado = resultado[1]
+cliente_logueado = resultado[3]
 
 email_cliente = resultado[4]
 
