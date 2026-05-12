@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import psycopg2
+import bcrypt
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,11 +11,8 @@ load_dotenv()
 # ======================================
 
 st.set_page_config(
-
     page_title="Nexus Legal AI",
-
     layout="wide"
-
 )
 
 # ======================================
@@ -22,19 +20,12 @@ st.set_page_config(
 # ======================================
 
 conn = psycopg2.connect(
-
     host=st.secrets["SUPABASE_HOST"],
-
     database=st.secrets["SUPABASE_DB"],
-
     user=st.secrets["SUPABASE_USER"],
-
     password=st.secrets["SUPABASE_PASSWORD"],
-
     port=st.secrets["SUPABASE_PORT"],
-
     sslmode="require"
-
 )
 
 cursor = conn.cursor()
@@ -48,11 +39,8 @@ st.sidebar.title("⚖️ Nexus Legal AI")
 st.sidebar.markdown("### 🔐 Iniciar Sesión")
 
 nuevo_usuario = st.sidebar.checkbox(
-
     "¿Eres nuevo? Crear cuenta",
-
     key="nuevo_usuario"
-
 )
 
 # ======================================
@@ -74,11 +62,8 @@ if nuevo_usuario:
         )
 
         nuevo_password = st.text_input(
-
             "Password",
-
             type="password"
-
         )
 
         nuevo_email = st.text_input(
@@ -101,7 +86,7 @@ if nuevo_usuario:
 
             cursor.execute("""
 
-            SELECT *
+            SELECT id
 
             FROM clientes
 
@@ -122,6 +107,15 @@ if nuevo_usuario:
                 )
 
             else:
+
+                # ======================================
+                # HASH PASSWORD
+                # ======================================
+
+                password_hash = bcrypt.hashpw(
+                    nuevo_password.encode(),
+                    bcrypt.gensalt()
+                ).decode()
 
                 # ======================================
                 # INSERTAR CLIENTE
@@ -146,7 +140,7 @@ if nuevo_usuario:
 
                     nuevo_nombre,
                     nuevo_usuario_input,
-                    nuevo_password,
+                    password_hash,
                     nuevo_email,
                     nuevo_whatsapp,
                     "BASICO"
@@ -206,7 +200,7 @@ if not usuario or not password:
     st.stop()
 
 # ======================================
-# LOGIN SQL
+# BUSCAR USUARIO
 # ======================================
 
 cursor.execute("""
@@ -217,21 +211,41 @@ FROM clientes
 
 WHERE usuario = %s
 
-AND password = %s
-
 """, (
 
     usuario,
-
-    password
 
 ))
 
 resultado = cursor.fetchone()
 
+# ======================================
+# VALIDAR LOGIN
+# ======================================
+
 if not resultado:
 
     st.error("❌ Usuario inválido")
+
+    st.stop()
+
+password_guardado = resultado[3]
+
+# ======================================
+# VALIDAR HASH PASSWORD
+# ======================================
+
+password_correcto = bcrypt.checkpw(
+
+    password.encode(),
+
+    password_guardado.encode()
+
+)
+
+if not password_correcto:
+
+    st.error("❌ Password incorrecto")
 
     st.stop()
 
@@ -262,6 +276,16 @@ st.sidebar.info(
 )
 
 # ======================================
+# LOGOUT
+# ======================================
+
+if st.sidebar.button("Cerrar Sesión"):
+
+    st.session_state.clear()
+
+    st.rerun()
+
+# ======================================
 # PANEL ADMIN
 # ======================================
 
@@ -269,29 +293,15 @@ if usuario == "admin":
 
     st.title("⚙️ Panel Administrador")
 
-    # ======================================
-    # CONSULTAS
-    # ======================================
-
     df_clientes = pd.read_sql(
-
         "SELECT * FROM clientes ORDER BY id DESC",
-
         conn
-
     )
 
     df_procesos = pd.read_sql(
-
         "SELECT * FROM procesos ORDER BY id DESC",
-
         conn
-
     )
-
-    # ======================================
-    # METRICAS
-    # ======================================
 
     col1, col2 = st.columns(2)
 
@@ -309,18 +319,11 @@ if usuario == "admin":
             len(df_procesos)
         )
 
-    # ======================================
-    # CLIENTES
-    # ======================================
-
     st.subheader("👥 Clientes")
 
     st.dataframe(
-
         df_clientes,
-
         use_container_width=True
-
     )
 
     # ======================================
@@ -330,25 +333,17 @@ if usuario == "admin":
     st.subheader("➕ Agregar Proceso")
 
     cliente_proceso = st.selectbox(
-
         "Cliente",
-
         df_clientes["nombre"]
-
     )
 
     datos_cliente_admin = df_clientes[
-
         df_clientes["nombre"] == cliente_proceso
-
     ].iloc[0]
 
     with st.form(
-
         "nuevo_proceso_admin",
-
         clear_on_submit=True
-
     ):
 
         nuevo_proceso = st.text_input(
@@ -368,10 +363,6 @@ if usuario == "admin":
                 )
 
             else:
-
-                # ======================================
-                # VALIDAR DUPLICADO
-                # ======================================
 
                 cursor.execute("""
 
@@ -399,10 +390,6 @@ if usuario == "admin":
                     )
 
                 else:
-
-                    # ======================================
-                    # INSERTAR PROCESO
-                    # ======================================
 
                     cursor.execute("""
 
@@ -436,18 +423,11 @@ if usuario == "admin":
 
                     st.rerun()
 
-    # ======================================
-    # VER PROCESOS
-    # ======================================
-
     st.subheader("📂 Procesos")
 
     st.dataframe(
-
         df_procesos,
-
         use_container_width=True
-
     )
 
 # ======================================
@@ -459,9 +439,7 @@ else:
     st.title("⚖️ Nexus Legal AI")
 
     st.subheader(
-
         f"Procesos judiciales de {cliente_logueado}"
-
     )
 
     # ======================================
@@ -471,11 +449,8 @@ else:
     st.subheader("➕ Agregar Proceso")
 
     with st.form(
-
         "nuevo_proceso",
-
         clear_on_submit=True
-
     ):
 
         nuevo_proceso_cliente = st.text_input(
@@ -488,10 +463,6 @@ else:
 
         if agregar:
 
-            # ======================================
-            # VALIDAR VACIO
-            # ======================================
-
             if not nuevo_proceso_cliente.strip():
 
                 st.warning(
@@ -499,10 +470,6 @@ else:
                 )
 
             else:
-
-                # ======================================
-                # VALIDAR DUPLICADO
-                # ======================================
 
                 cursor.execute("""
 
@@ -523,10 +490,6 @@ else:
 
                 proceso_existente = cursor.fetchone()
 
-                # ======================================
-                # SI YA EXISTE
-                # ======================================
-
                 if proceso_existente:
 
                     st.warning(
@@ -534,10 +497,6 @@ else:
                     )
 
                 else:
-
-                    # ======================================
-                    # INSERTAR PROCESO
-                    # ======================================
 
                     cursor.execute("""
 
@@ -588,13 +547,9 @@ else:
     """
 
     df = pd.read_sql(
-
         query,
-
         conn,
-
         params=(cliente_logueado,)
-
     )
 
     if df.empty:
@@ -645,11 +600,8 @@ else:
     st.subheader("📂 Procesos")
 
     st.dataframe(
-
         df,
-
         use_container_width=True
-
     )
 
     # ======================================
@@ -663,25 +615,17 @@ else:
     if len(juzgados) > 0:
 
         juzgado_select = st.selectbox(
-
             "Seleccione Juzgado",
-
             juzgados
-
         )
 
         df_juzgado = df[
-
             df["juzgado"] == juzgado_select
-
         ]
 
         st.dataframe(
-
             df_juzgado,
-
             use_container_width=True
-
         )
 
 # ======================================

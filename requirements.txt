@@ -6,3 +6,4 @@ selenium
 webdriver-manager
 twilio
 sib-api-v3-sdk
+bcrypt
