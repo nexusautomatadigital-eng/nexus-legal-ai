@@ -167,8 +167,7 @@ if nuevo_usuario:
                     nuevo_password
                 )
 
-                st.session_state["nuevo_usuario"] = False
-
+                
                 st.success(
                     "✅ Cuenta creada correctamente"
                 )
