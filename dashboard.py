@@ -235,13 +235,23 @@ password_guardado = resultado[3]
 # VALIDAR HASH PASSWORD
 # ======================================
 
-password_correcto = bcrypt.checkpw(
+try:
 
-    password.encode(),
+    password_correcto = bcrypt.checkpw(
 
-    password_guardado.encode()
+        password.encode(),
 
-)
+        password_guardado.encode()
+
+    )
+
+except Exception:
+
+    st.error(
+        "❌ Usuario con password antigua insegura. Cree nuevamente la cuenta."
+    )
+
+    st.stop()
 
 if not password_correcto:
 
