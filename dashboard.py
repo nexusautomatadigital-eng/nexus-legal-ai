@@ -180,7 +180,7 @@ if nuevo_usuario:
                     password_hash,
                     nuevo_email,
                     nuevo_whatsapp,
-                    "BASICO"
+                    "FREE"
 
                 ))
 
@@ -342,6 +342,127 @@ st.sidebar.info(
 )
 
 # ======================================
+# PLANES WOMPI
+# ======================================
+
+st.sidebar.markdown("---")
+
+st.sidebar.subheader("💳 Mejorar Plan")
+
+# ======================================
+# PLAN FREE
+# ======================================
+
+if plan_cliente == "FREE":
+
+    st.sidebar.success("""
+    🟢 PLAN FREE
+
+    ✅ 1 proceso
+    ✅ Dashboard judicial
+    ✅ IA básica
+    ✅ Prueba gratuita
+    """)
+
+    st.sidebar.markdown("""
+    ### 🔵 PLAN BASICO
+
+    ✅ Hasta 5 procesos
+    ✅ Historial completo
+    ✅ Alertas email
+    """)
+
+    wompi_basico = (
+        "https://checkout.wompi.co/l/"
+        "https://checkout.wompi.co/l/MB3i06."
+    )
+
+    st.sidebar.link_button(
+        "Pagar BASICO",
+        wompi_basico
+    )
+
+# ======================================
+# PLAN BASICO
+# ======================================
+
+elif plan_cliente == "BASICO":
+
+    st.sidebar.info("""
+    🔵 PLAN BASICO
+
+    ✅ Hasta 5 procesos
+    ✅ Dashboard completo
+    ✅ Alertas email
+    """)
+
+    st.sidebar.markdown("""
+    ### 🟡 PLAN PREMIUM
+
+    ✅ Hasta 20 procesos
+    ✅ WhatsApp automático
+    ✅ IA avanzada
+    """)
+
+    wompi_premium = (
+        "https://checkout.wompi.co/l/"
+        "https://checkout.wompi.co/l/gfCbqa."
+    )
+
+    st.sidebar.link_button(
+        "Pagar PREMIUM",
+        wompi_premium
+    )
+
+# ======================================
+# PLAN PREMIUM
+# ======================================
+
+elif plan_cliente == "PREMIUM":
+
+    st.sidebar.warning("""
+    🟡 PLAN PREMIUM
+
+    ✅ Hasta 20 procesos
+    ✅ WhatsApp automático
+    ✅ IA avanzada
+    """)
+
+    st.sidebar.markdown("""
+    ### 🟣 PLAN GOLD
+
+    ✅ Hasta 100 procesos
+    ✅ IA jurídica avanzada
+    ✅ Prioridad máxima
+    """)
+
+    wompi_gold = (
+        "https://checkout.wompi.co/l/"
+        "https://checkout.wompi.co/l/F8UqPA."
+    )
+
+    st.sidebar.link_button(
+        "Pagar GOLD",
+        wompi_gold
+    )
+
+# ======================================
+# PLAN GOLD
+# ======================================
+
+elif plan_cliente == "GOLD":
+
+    st.sidebar.success("""
+    🟣 PLAN GOLD
+
+    ✅ Hasta 100 procesos
+    ✅ IA jurídica avanzada
+    ✅ Prioridad máxima
+    ✅ WhatsApp premium
+    """)
+
+
+# ======================================
 # LOGOUT
 # ======================================
 
@@ -415,6 +536,47 @@ else:
         )
 
         if agregar:
+
+
+        # ======================================
+        # LIMITES POR PLAN
+        # ====================================== 
+        
+        limites = {
+            "FREE": 1,
+            "BASICO": 5,
+            "PREMIUM": 20,
+            "GOLD": 100
+        }
+
+        limite_actual = limites.get(
+            plan_cliente,
+            1
+        )
+
+        cursor.execute("""
+
+        SELECT COUNT(*)
+
+        FROM procesos
+
+        WHERE cliente = %s
+
+        """, (
+
+            cliente_logueado,
+
+        ))
+
+        total_procesos = cursor.fetchone()[0]
+
+        if total_procesos >= limite_actual:
+
+            st.error(
+                f"❌ Tu plan {plan_cliente} permite máximo {limite_actual} procesos"
+            )
+
+            st.stop()
 
             cursor.execute("""
 
