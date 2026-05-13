@@ -121,6 +121,10 @@ if nuevo_usuario:
 
         if crear:
 
+            # ======================================
+            # VALIDAR USUARIO
+            # ======================================
+
             cursor.execute("""
 
             SELECT id
@@ -155,7 +159,7 @@ if nuevo_usuario:
                 ).decode()
 
                 # ======================================
-                # INSERTAR
+                # INSERTAR CLIENTE
                 # ======================================
 
                 cursor.execute("""
@@ -251,63 +255,27 @@ if not resultado:
 
     st.stop()
 
+# ======================================
+# COLUMNAS CLIENTES
+# ======================================
+
+cliente_logueado = resultado[3]
 password_guardado = resultado[2]
+email_cliente = resultado[4]
+whatsapp_cliente = resultado[5]
+plan_cliente = resultado[6]
 
 # ======================================
 # VALIDAR PASSWORD
 # ======================================
 
-password_correcto = False
+password_correcto = bcrypt.checkpw(
 
-# ======================================
-# PASSWORD ANTIGUA
-# ======================================
+    password.encode(),
 
-if not password_guardado.startswith("$2b$"):
+    password_guardado.encode()
 
-    if password == password_guardado:
-
-        password_correcto = True
-
-        nuevo_hash = bcrypt.hashpw(
-            password.encode(),
-            bcrypt.gensalt()
-        ).decode()
-
-        cursor.execute("""
-
-        UPDATE clientes
-
-        SET password = %s
-
-        WHERE usuario = %s
-
-        """, (
-
-            nuevo_hash,
-            usuario
-
-        ))
-
-        conn.commit()
-
-# ======================================
-# PASSWORD BCRYPT
-# ======================================
-
-else:
-
-    password_correcto = bcrypt.checkpw(
-
-        password.encode(),
-
-        password_guardado.encode()
-
-    )
-
-# ======================================
-# PASSWORD INCORRECTO
-# ======================================
+)
 
 if not password_correcto:
 
@@ -316,18 +284,6 @@ if not password_correcto:
     )
 
     st.stop()
-
-# ======================================
-# DATOS CLIENTE
-# ======================================
-
-cliente_logueado = resultado[3]
-
-email_cliente = resultado[4]
-
-whatsapp_cliente = resultado[5]
-
-plan_cliente = resultado[6]
 
 # ======================================
 # SIDEBAR INFO
@@ -373,8 +329,7 @@ if plan_cliente == "FREE":
     """)
 
     wompi_basico = (
-        "https://checkout.wompi.co/l/"
-        "https://checkout.wompi.co/l/MB3i06."
+        "https://checkout.wompi.co/l/MB3i06"
     )
 
     st.sidebar.link_button(
@@ -405,8 +360,7 @@ elif plan_cliente == "BASICO":
     """)
 
     wompi_premium = (
-        "https://checkout.wompi.co/l/"
-        "https://checkout.wompi.co/l/gfCbqa."
+        "https://checkout.wompi.co/l/gfCbqa"
     )
 
     st.sidebar.link_button(
@@ -437,8 +391,7 @@ elif plan_cliente == "PREMIUM":
     """)
 
     wompi_gold = (
-        "https://checkout.wompi.co/l/"
-        "https://checkout.wompi.co/l/F8UqPA."
+        "https://checkout.wompi.co/l/F8UqPA"
     )
 
     st.sidebar.link_button(
@@ -460,7 +413,6 @@ elif plan_cliente == "GOLD":
     ✅ Prioridad máxima
     ✅ WhatsApp premium
     """)
-
 
 # ======================================
 # LOGOUT
@@ -537,105 +489,124 @@ else:
 
         if agregar:
 
+            # ======================================
+            # VALIDAR CAMPO VACIO
+            # ======================================
 
-        # ======================================
-        # LIMITES POR PLAN
-        # ====================================== 
-        
-        limites = {
-            "FREE": 1,
-            "BASICO": 5,
-            "PREMIUM": 20,
-            "GOLD": 100
-        }
-
-        limite_actual = limites.get(
-            plan_cliente,
-            1
-        )
-
-        cursor.execute("""
-
-        SELECT COUNT(*)
-
-        FROM procesos
-
-        WHERE cliente = %s
-
-        """, (
-
-            cliente_logueado,
-
-        ))
-
-        total_procesos = cursor.fetchone()[0]
-
-        if total_procesos >= limite_actual:
-
-            st.error(
-                f"❌ Tu plan {plan_cliente} permite máximo {limite_actual} procesos"
-            )
-
-            st.stop()
-
-            cursor.execute("""
-
-            SELECT id
-
-            FROM procesos
-
-            WHERE cliente = %s
-
-            AND numero_proceso = %s
-
-            """, (
-
-                cliente_logueado,
-                nuevo_proceso_cliente
-
-            ))
-
-            proceso_existente = cursor.fetchone()
-
-            if proceso_existente:
+            if not nuevo_proceso_cliente.strip():
 
                 st.warning(
-                    "⚠️ El proceso ya existe"
+                    "⚠️ Ingrese un número de proceso"
                 )
 
             else:
 
-                cursor.execute("""
+                # ======================================
+                # LIMITES POR PLAN
+                # ======================================
 
-                INSERT INTO procesos (
+                limites = {
+                    "FREE": 1,
+                    "BASICO": 5,
+                    "PREMIUM": 20,
+                    "GOLD": 100
+                }
 
-                    cliente,
-                    email,
-                    whatsapp,
-                    plan,
-                    numero_proceso
-
+                limite_actual = limites.get(
+                    plan_cliente,
+                    1
                 )
 
-                VALUES (%s, %s, %s, %s, %s)
+                cursor.execute("""
+
+                SELECT COUNT(*)
+
+                FROM procesos
+
+                WHERE cliente = %s
 
                 """, (
 
                     cliente_logueado,
-                    email_cliente,
-                    whatsapp_cliente,
-                    plan_cliente,
-                    nuevo_proceso_cliente
 
                 ))
 
-                conn.commit()
+                total_procesos = cursor.fetchone()[0]
 
-                st.success(
-                    "✅ Proceso agregado correctamente"
-                )
+                if total_procesos >= limite_actual:
 
-                st.rerun()
+                    st.error(
+                        f"❌ Tu plan {plan_cliente} permite máximo {limite_actual} procesos"
+                    )
+
+                else:
+
+                    # ======================================
+                    # VALIDAR DUPLICADO
+                    # ======================================
+
+                    cursor.execute("""
+
+                    SELECT id
+
+                    FROM procesos
+
+                    WHERE cliente = %s
+
+                    AND numero_proceso = %s
+
+                    """, (
+
+                        cliente_logueado,
+                        nuevo_proceso_cliente
+
+                    ))
+
+                    proceso_existente = cursor.fetchone()
+
+                    if proceso_existente:
+
+                        st.warning(
+                            "⚠️ El proceso ya existe"
+                        )
+
+                    else:
+
+                        # ======================================
+                        # INSERTAR PROCESO
+                        # ======================================
+
+                        cursor.execute("""
+
+                        INSERT INTO procesos (
+
+                            cliente,
+                            email,
+                            whatsapp,
+                            plan,
+                            numero_proceso
+
+                        )
+
+                        VALUES (%s, %s, %s, %s, %s)
+
+                        """, (
+
+                            cliente_logueado,
+                            email_cliente,
+                            whatsapp_cliente,
+                            plan_cliente,
+                            nuevo_proceso_cliente
+
+                        ))
+
+                        conn.commit()
+
+                        st.success(
+                            "✅ Proceso agregado correctamente"
+                        )
+
+                        st.rerun()
 
     # ======================================
     # CONSULTAR PROCESOS
@@ -660,6 +631,10 @@ else:
         )
 
         st.stop()
+
+    # ======================================
+    # METRICAS
+    # ======================================
 
     col1, col2, col3 = st.columns(3)
 
@@ -689,6 +664,10 @@ else:
             "Plan",
             plan_cliente
         )
+
+    # ======================================
+    # TABLA
+    # ======================================
 
     st.subheader("📂 Procesos")
 
