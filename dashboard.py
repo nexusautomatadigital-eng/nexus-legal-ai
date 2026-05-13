@@ -219,7 +219,19 @@ password = st.sidebar.text_input(
     key="login_password"
 )
 
+ingresar = st.sidebar.button(
+    "Ingresar"
+)
+
+if not ingresar:
+
+    st.stop()
+
 if not usuario or not password:
+
+    st.warning(
+        "⚠️ Ingrese usuario y password"
+    )
 
     st.stop()
 
@@ -320,6 +332,12 @@ if plan_cliente == "FREE":
     ✅ Prueba gratuita
     """)
 
+    # ======================================
+    # BASICO
+    # ======================================
+
+    st.sidebar.markdown("---")
+
     st.sidebar.markdown("""
     ### 🔵 PLAN BASICO
 
@@ -335,6 +353,52 @@ if plan_cliente == "FREE":
     st.sidebar.link_button(
         "Pagar BASICO",
         wompi_basico
+    )
+
+    # ======================================
+    # PREMIUM
+    # ======================================
+
+    st.sidebar.markdown("---")
+
+    st.sidebar.markdown("""
+    ### 🟡 PLAN PREMIUM
+
+    ✅ Hasta 20 procesos
+    ✅ WhatsApp automático
+    ✅ IA avanzada
+    """)
+
+    wompi_premium = (
+        "https://checkout.wompi.co/l/gfCbqa"
+    )
+
+    st.sidebar.link_button(
+        "Pagar PREMIUM",
+        wompi_premium
+    )
+
+    # ======================================
+    # GOLD
+    # ======================================
+
+    st.sidebar.markdown("---")
+
+    st.sidebar.markdown("""
+    ### 🟣 PLAN GOLD
+
+    ✅ Hasta 100 procesos
+    ✅ IA jurídica avanzada
+    ✅ Prioridad máxima
+    """)
+
+    wompi_gold = (
+        "https://checkout.wompi.co/l/F8UqPA"
+    )
+
+    st.sidebar.link_button(
+        "Pagar GOLD",
+        wompi_gold
     )
 
 # ======================================
@@ -420,7 +484,18 @@ elif plan_cliente == "GOLD":
 
 if st.sidebar.button("Cerrar Sesión"):
 
+    # LIMPIAR SESSION
+
     st.session_state.clear()
+
+    # LIMPIAR INPUTS
+
+    st.session_state["login_usuario"] = ""
+    st.session_state["login_password"] = ""
+
+    # VOLVER LOGIN
+
+    st.session_state["pagina"] = "login"
 
     st.rerun()
 
