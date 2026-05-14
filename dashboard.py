@@ -2,43 +2,108 @@ import streamlit as st
 import pandas as pd
 import psycopg2
 import bcrypt
+import time
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# ======================================
+# =========================================
 # CONFIG
-# ======================================
+# =========================================
 
 st.set_page_config(
     page_title="Nexus Legal AI",
     layout="wide"
 )
 
-# ======================================
-# EVITAR AUTOCOMPLETE CHROME
-# ======================================
+# =========================================
+# CSS
+# =========================================
 
 st.markdown("""
 
 <style>
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
+.block-container{
+    padding-top:2rem;
+}
 
-    transition: background-color 5000s ease-in-out 0s;
-    -webkit-text-fill-color: black !important;
+.plan-card{
+    border:1px solid #2d2d2d;
+    padding:25px;
+    border-radius:15px;
+    background:#111827;
+    color:white;
+    min-height:420px;
+}
 
+.plan-title{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.plan-price{
+    font-size:38px;
+    color:#00d4ff;
+    font-weight:bold;
+}
+
+.plan-free{
+    color:#00ff88;
+}
+
+.plan-premium{
+    color:#ffd700;
+}
+
+.plan-gold{
+    color:#d946ef;
 }
 
 </style>
 
 """, unsafe_allow_html=True)
 
-# ======================================
-# CONEXION POSTGRESQL
-# ======================================
+# =========================================
+# SESSION
+# =========================================
+
+if "logueado" not in st.session_state:
+    st.session_state.logueado = False
+
+if "pagina" not in st.session_state:
+    st.session_state.pagina = "landing"
+
+if "plan_seleccionado" not in st.session_state:
+    st.session_state.plan_seleccionado = "FREE"
+
+# =========================================
+# AUTO LOGOUT
+# =========================================
+
+TIMEOUT_MINUTOS = 30
+
+if "ultima_actividad" not in st.session_state:
+    st.session_state.ultima_actividad = datetime.now()
+
+else:
+
+    diferencia = datetime.now() - st.session_state.ultima_actividad
+
+    if diferencia > timedelta(minutes=TIMEOUT_MINUTOS):
+
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+
+        st.warning("⚠️ Sesión expirada por inactividad")
+        st.rerun()
+
+st.session_state.ultima_actividad = datetime.now()
+
+# =========================================
+# DATABASE
+# =========================================
 
 conn = psycopg2.connect(
     host=st.secrets["SUPABASE_HOST"],
@@ -51,255 +116,368 @@ conn = psycopg2.connect(
 
 cursor = conn.cursor()
 
-# ======================================
+# =========================================
+# WOMPI LINKS
+# =========================================
+
+WOMPI_BASICO = "https://checkout.wompi.co/l/MB3i06"
+WOMPI_PREMIUM = "https://checkout.wompi.co/l/gfCbqa"
+WOMPI_GOLD = "https://checkout.wompi.co/l/F8UqPA"
+
+# =========================================
+# LIMITES PLANES
+# =========================================
+
+LIMITES = {
+    "FREE": 1,
+    "BASICO": 5,
+    "PREMIUM": 20,
+    "GOLD": 100
+}
+
+# =========================================
 # SIDEBAR
-# ======================================
+# =========================================
 
 st.sidebar.title("⚖️ Nexus Legal AI")
 
-st.sidebar.markdown("### 🔐 Iniciar Sesión")
+# =========================================
+# LANDING
+# =========================================
 
-# ======================================
-# NAVEGACION
-# ======================================
+if not st.session_state.logueado:
 
-if "pagina" not in st.session_state:
-    st.session_state.pagina = "login"
+    st.title("⚖️ Nexus Legal AI")
 
-col1, col2 = st.sidebar.columns(2)
+    st.subheader(
+        "Automatización judicial con Inteligencia Artificial"
+    )
 
-with col1:
+    st.markdown("---")
 
-    if st.button("Login"):
+    col1, col2, col3, col4 = st.columns(4)
 
-        st.session_state.pagina = "login"
+    # =====================================
+    # FREE
+    # =====================================
 
-with col2:
+    with col1:
 
-    if st.button("Registro"):
+        st.markdown("""
+        <div class="plan-card">
 
-        st.session_state.pagina = "registro"
+        <div class="plan-title plan-free">
+        🟢 FREE
+        </div>
 
-nuevo_usuario = (
-    st.session_state.pagina == "registro"
-)
+        <br>
 
-# ======================================
-# REGISTRO
-# ======================================
+        <div class="plan-price">
+        GRATIS
+        </div>
 
-if nuevo_usuario:
+        <br>
 
-    st.title("📝 Crear Cuenta")
+        ✅ 1 proceso judicial<br><br>
+        ✅ Dashboard judicial<br><br>
+        ✅ IA básica<br><br>
+        ✅ Prueba gratuita<br><br>
 
-    with st.form("registro"):
+        </div>
+        """, unsafe_allow_html=True)
 
-        nuevo_nombre = st.text_input(
-            "Nombre Completo"
+        if st.button("🚀 Probar Gratis"):
+
+            st.session_state.plan_seleccionado = "FREE"
+            st.session_state.pagina = "registro"
+
+            st.rerun()
+
+    # =====================================
+    # BASICO
+    # =====================================
+
+    with col2:
+
+        st.markdown("""
+        <div class="plan-card">
+
+        <div class="plan-title">
+        🔵 BASICO
+        </div>
+
+        <br>
+
+        <div class="plan-price">
+        $29.900
+        </div>
+
+        <br>
+
+        ✅ Hasta 5 procesos<br><br>
+        ✅ Historial completo<br><br>
+        ✅ Alertas email<br><br>
+
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.link_button(
+            "💳 Suscribirme",
+            WOMPI_BASICO
         )
 
-        nuevo_usuario_input = st.text_input(
-            "Usuario"
+    # =====================================
+    # PREMIUM
+    # =====================================
+
+    with col3:
+
+        st.markdown("""
+        <div class="plan-card">
+
+        <div class="plan-title plan-premium">
+        🟡 PREMIUM
+        </div>
+
+        <br>
+
+        <div class="plan-price">
+        $59.900
+        </div>
+
+        <br>
+
+        ✅ Hasta 20 procesos<br><br>
+        ✅ WhatsApp automático<br><br>
+        ✅ IA avanzada<br><br>
+
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.link_button(
+            "💳 Suscribirme",
+            WOMPI_PREMIUM
         )
 
-        nuevo_password = st.text_input(
-            "Password",
-            type="password"
+    # =====================================
+    # GOLD
+    # =====================================
+
+    with col4:
+
+        st.markdown("""
+        <div class="plan-card">
+
+        <div class="plan-title plan-gold">
+        🟣 GOLD
+        </div>
+
+        <br>
+
+        <div class="plan-price">
+        $99.900
+        </div>
+
+        <br>
+
+        ✅ Hasta 100 procesos<br><br>
+        ✅ IA Jurídica<br><br>
+        ✅ Prioridad máxima<br><br>
+
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.link_button(
+            "💳 Suscribirme",
+            WOMPI_GOLD
         )
 
-        nuevo_email = st.text_input(
-            "Email"
-        )
+    st.markdown("---")
 
-        nuevo_whatsapp = st.text_input(
-            "WhatsApp"
-        )
+    # =====================================
+    # LOGIN
+    # =====================================
 
-        crear = st.form_submit_button(
-            "Crear Cuenta"
-        )
+    st.sidebar.subheader("🔐 Iniciar Sesión")
 
-        if crear:
+    usuario_login = st.sidebar.text_input(
+        "Usuario"
+    )
 
-            # ======================================
-            # VALIDAR USUARIO
-            # ======================================
+    password_login = st.sidebar.text_input(
+        "Password",
+        type="password"
+    )
 
-            cursor.execute("""
+    ingresar = st.sidebar.button(
+        "Ingresar"
+    )
 
-            SELECT id
+    # =====================================
+    # REGISTRO FREE
+    # =====================================
 
-            FROM clientes
+    if st.session_state.pagina == "registro":
 
-            WHERE usuario = %s
+        st.markdown("---")
 
-            """, (
+        st.header("📝 Crear Cuenta")
 
-                nuevo_usuario_input,
+        with st.form("registro"):
 
-            ))
+            nombre = st.text_input(
+                "Nombre Completo"
+            )
 
-            existe = cursor.fetchone()
+            usuario = st.text_input(
+                "Usuario"
+            )
 
-            if existe:
+            password = st.text_input(
+                "Password",
+                type="password"
+            )
 
-                st.error(
-                    "❌ Usuario ya existe"
-                )
+            email = st.text_input(
+                "Email"
+            )
 
-            else:
+            whatsapp = st.text_input(
+                "WhatsApp"
+            )
 
-                # ======================================
-                # HASH PASSWORD
-                # ======================================
+            crear = st.form_submit_button(
+                "Crear Cuenta"
+            )
 
-                password_hash = bcrypt.hashpw(
-                    nuevo_password.encode(),
-                    bcrypt.gensalt()
-                ).decode()
-
-                # ======================================
-                # INSERTAR CLIENTE
-                # ======================================
+            if crear:
 
                 cursor.execute("""
 
-                INSERT INTO clientes (
+                SELECT id
+                FROM clientes
+                WHERE usuario = %s
 
-                    nombre,
-                    usuario,
-                    password,
-                    email,
-                    whatsapp,
-                    plan
+                """, (usuario,))
 
-                )
+                existe = cursor.fetchone()
 
-                VALUES (%s, %s, %s, %s, %s, %s)
+                if existe:
 
-                """, (
+                    st.error(
+                        "❌ Usuario ya existe"
+                    )
 
-                    nuevo_nombre,
-                    nuevo_usuario_input,
-                    password_hash,
-                    nuevo_email,
-                    nuevo_whatsapp,
-                    "FREE"
+                else:
 
-                ))
+                    password_hash = bcrypt.hashpw(
+                        password.encode(),
+                        bcrypt.gensalt()
+                    ).decode()
 
-                conn.commit()
+                    cursor.execute("""
 
-                st.success(
-                    "✅ Cuenta creada correctamente"
-                )
+                    INSERT INTO clientes (
 
-                st.info(
-                    "🔐 Ahora inicia sesión."
-                )
+                        nombre,
+                        usuario,
+                        password,
+                        email,
+                        whatsapp,
+                        plan
 
-                st.session_state.pagina = "login"
+                    )
+
+                    VALUES (%s,%s,%s,%s,%s,%s)
+
+                    """, (
+
+                        nombre,
+                        usuario,
+                        password_hash,
+                        email,
+                        whatsapp,
+                        st.session_state.plan_seleccionado
+
+                    ))
+
+                    conn.commit()
+
+                    st.success(
+                        "✅ Cuenta creada correctamente"
+                    )
+
+                    time.sleep(2)
+
+                    st.session_state.pagina = "landing"
+
+                    st.rerun()
+
+    # =====================================
+    # LOGIN
+    # =====================================
+
+    if ingresar:
+
+        cursor.execute("""
+
+        SELECT *
+        FROM clientes
+        WHERE usuario = %s
+
+        """, (usuario_login,))
+
+        resultado = cursor.fetchone()
+
+        if not resultado:
+
+            st.sidebar.error(
+                "❌ Usuario inválido"
+            )
+
+        else:
+
+            password_guardado = resultado[2]
+
+            password_correcto = bcrypt.checkpw(
+
+                password_login.encode(),
+                password_guardado.encode()
+
+            )
+
+            if password_correcto:
+
+                st.session_state.logueado = True
+
+                st.session_state.usuario = resultado[1]
+                st.session_state.nombre = resultado[3]
+                st.session_state.email = resultado[4]
+                st.session_state.whatsapp = resultado[5]
+                st.session_state.plan = resultado[6]
 
                 st.rerun()
 
-    st.stop()
+            else:
 
-# ======================================
-# LOGIN
-# ======================================
-
-usuario = st.sidebar.text_input(
-    "Usuario",
-    key="login_usuario"
-)
-
-password = st.sidebar.text_input(
-    "Password",
-    type="password",
-    key="login_password"
-)
-
-ingresar = st.sidebar.button(
-    "Ingresar"
-)
-
-if not ingresar:
+                st.sidebar.error(
+                    "❌ Password incorrecto"
+                )
 
     st.stop()
 
-if not usuario or not password:
+# =========================================
+# DASHBOARD
+# =========================================
 
-    st.warning(
-        "⚠️ Ingrese usuario y password"
-    )
+cliente_logueado = st.session_state.nombre
+plan_cliente = st.session_state.plan
+email_cliente = st.session_state.email
+whatsapp_cliente = st.session_state.whatsapp
 
-    st.stop()
-
-# ======================================
-# BUSCAR USUARIO
-# ======================================
-
-cursor.execute("""
-
-SELECT *
-
-FROM clientes
-
-WHERE usuario = %s
-
-""", (
-
-    usuario,
-
-))
-
-resultado = cursor.fetchone()
-
-# ======================================
-# VALIDAR LOGIN
-# ======================================
-
-if not resultado:
-
-    st.error(
-        "❌ Usuario inválido"
-    )
-
-    st.stop()
-
-# ======================================
-# COLUMNAS CLIENTES
-# ======================================
-
-cliente_logueado = resultado[3]
-password_guardado = resultado[2]
-email_cliente = resultado[4]
-whatsapp_cliente = resultado[5]
-plan_cliente = resultado[6]
-
-# ======================================
-# VALIDAR PASSWORD
-# ======================================
-
-password_correcto = bcrypt.checkpw(
-
-    password.encode(),
-
-    password_guardado.encode()
-
-)
-
-if not password_correcto:
-
-    st.error(
-        "❌ Password incorrecto"
-    )
-
-    st.stop()
-
-# ======================================
-# SIDEBAR INFO
-# ======================================
+# =========================================
+# SIDEBAR LOGUEADO
+# =========================================
 
 st.sidebar.success(
     f"Bienvenido {cliente_logueado}"
@@ -309,407 +487,218 @@ st.sidebar.info(
     f"Plan: {plan_cliente}"
 )
 
-# ======================================
-# PLANES WOMPI
-# ======================================
+# =========================================
+# CONTADOR PLAN
+# =========================================
+
+cursor.execute("""
+
+SELECT COUNT(*)
+FROM procesos
+WHERE cliente = %s
+
+""", (cliente_logueado,))
+
+total_procesos = cursor.fetchone()[0]
+
+limite_plan = LIMITES.get(
+    plan_cliente,
+    1
+)
+
+st.sidebar.metric(
+    "Procesos usados",
+    f"{total_procesos}/{limite_plan}"
+)
+
+# =========================================
+# UPGRADE
+# =========================================
 
 st.sidebar.markdown("---")
 
-st.sidebar.subheader("💳 Mejorar Plan")
-
-# ======================================
-# PLAN FREE
-# ======================================
+st.sidebar.subheader("🚀 Mejorar Plan")
 
 if plan_cliente == "FREE":
 
-    st.sidebar.success("""
-    🟢 PLAN FREE
-
-    ✅ 1 proceso
-    ✅ Dashboard judicial
-    ✅ IA básica
-    ✅ Prueba gratuita
-    """)
-
-    # ======================================
-    # BASICO
-    # ======================================
-
-    st.sidebar.markdown("---")
-
-    st.sidebar.markdown("""
-    ### 🔵 PLAN BASICO
-
-    ✅ Hasta 5 procesos
-    ✅ Historial completo
-    ✅ Alertas email
-    """)
-
-    wompi_basico = (
-        "https://checkout.wompi.co/l/MB3i06"
+    st.sidebar.link_button(
+        "🔵 BASICO",
+        WOMPI_BASICO
     )
 
     st.sidebar.link_button(
-        "Pagar BASICO",
-        wompi_basico
-    )
-
-    # ======================================
-    # PREMIUM
-    # ======================================
-
-    st.sidebar.markdown("---")
-
-    st.sidebar.markdown("""
-    ### 🟡 PLAN PREMIUM
-
-    ✅ Hasta 20 procesos
-    ✅ WhatsApp automático
-    ✅ IA avanzada
-    """)
-
-    wompi_premium = (
-        "https://checkout.wompi.co/l/gfCbqa"
+        "🟡 PREMIUM",
+        WOMPI_PREMIUM
     )
 
     st.sidebar.link_button(
-        "Pagar PREMIUM",
-        wompi_premium
+        "🟣 GOLD",
+        WOMPI_GOLD
     )
-
-    # ======================================
-    # GOLD
-    # ======================================
-
-    st.sidebar.markdown("---")
-
-    st.sidebar.markdown("""
-    ### 🟣 PLAN GOLD
-
-    ✅ Hasta 100 procesos
-    ✅ IA jurídica avanzada
-    ✅ Prioridad máxima
-    """)
-
-    wompi_gold = (
-        "https://checkout.wompi.co/l/F8UqPA"
-    )
-
-    st.sidebar.link_button(
-        "Pagar GOLD",
-        wompi_gold
-    )
-
-# ======================================
-# PLAN BASICO
-# ======================================
 
 elif plan_cliente == "BASICO":
 
-    st.sidebar.info("""
-    🔵 PLAN BASICO
-
-    ✅ Hasta 5 procesos
-    ✅ Dashboard completo
-    ✅ Alertas email
-    """)
-
-    st.sidebar.markdown("""
-    ### 🟡 PLAN PREMIUM
-
-    ✅ Hasta 20 procesos
-    ✅ WhatsApp automático
-    ✅ IA avanzada
-    """)
-
-    wompi_premium = (
-        "https://checkout.wompi.co/l/gfCbqa"
+    st.sidebar.link_button(
+        "🟡 PREMIUM",
+        WOMPI_PREMIUM
     )
 
     st.sidebar.link_button(
-        "Pagar PREMIUM",
-        wompi_premium
+        "🟣 GOLD",
+        WOMPI_GOLD
     )
-
-# ======================================
-# PLAN PREMIUM
-# ======================================
 
 elif plan_cliente == "PREMIUM":
 
-    st.sidebar.warning("""
-    🟡 PLAN PREMIUM
-
-    ✅ Hasta 20 procesos
-    ✅ WhatsApp automático
-    ✅ IA avanzada
-    """)
-
-    st.sidebar.markdown("""
-    ### 🟣 PLAN GOLD
-
-    ✅ Hasta 100 procesos
-    ✅ IA jurídica avanzada
-    ✅ Prioridad máxima
-    """)
-
-    wompi_gold = (
-        "https://checkout.wompi.co/l/F8UqPA"
-    )
-
     st.sidebar.link_button(
-        "Pagar GOLD",
-        wompi_gold
+        "🟣 GOLD",
+        WOMPI_GOLD
     )
 
-# ======================================
-# PLAN GOLD
-# ======================================
-
-elif plan_cliente == "GOLD":
-
-    st.sidebar.success("""
-    🟣 PLAN GOLD
-
-    ✅ Hasta 100 procesos
-    ✅ IA jurídica avanzada
-    ✅ Prioridad máxima
-    ✅ WhatsApp premium
-    """)
-
-# ======================================
+# =========================================
 # LOGOUT
-# ======================================
+# =========================================
+
+st.sidebar.markdown("---")
 
 if st.sidebar.button("Cerrar Sesión"):
 
-    # LIMPIAR SESSION
-
-    st.session_state.clear()
-
-    # LIMPIAR INPUTS
-
-    st.session_state["login_usuario"] = ""
-    st.session_state["login_password"] = ""
-
-    # VOLVER LOGIN
-
-    st.session_state["pagina"] = "login"
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
 
     st.rerun()
 
-# ======================================
-# ADMIN
-# ======================================
+# =========================================
+# TITULO
+# =========================================
 
-if usuario == "admin":
+st.title("⚖️ Nexus Legal AI")
 
-    st.title("⚙️ Panel Administrador")
+st.subheader(
+    f"Procesos judiciales de {cliente_logueado}"
+)
 
-    df_clientes = pd.read_sql(
-        "SELECT * FROM clientes ORDER BY id DESC",
-        conn
+# =========================================
+# AGREGAR PROCESO
+# =========================================
+
+st.subheader("➕ Agregar Proceso")
+
+with st.form(
+    "nuevo_proceso",
+    clear_on_submit=True
+):
+
+    numero_proceso = st.text_input(
+        "Número proceso judicial"
     )
 
-    df_procesos = pd.read_sql(
-        "SELECT * FROM procesos ORDER BY id DESC",
-        conn
+    agregar = st.form_submit_button(
+        "Agregar Proceso"
     )
 
-    st.subheader("👥 Clientes")
+    if agregar:
 
-    st.dataframe(
-        df_clientes,
-        use_container_width=True
-    )
+        if not numero_proceso.strip():
 
-    st.subheader("📂 Procesos")
+            st.warning(
+                "⚠️ Ingrese un proceso"
+            )
 
-    st.dataframe(
-        df_procesos,
-        use_container_width=True
-    )
+        else:
 
-# ======================================
-# CLIENTE NORMAL
-# ======================================
+            if total_procesos >= limite_plan:
 
-else:
-
-    st.title("⚖️ Nexus Legal AI")
-
-    st.subheader(
-        f"Procesos judiciales de {cliente_logueado}"
-    )
-
-    # ======================================
-    # AGREGAR PROCESO
-    # ======================================
-
-    st.subheader("➕ Agregar Proceso")
-
-    with st.form(
-        "nuevo_proceso",
-        clear_on_submit=True
-    ):
-
-        nuevo_proceso_cliente = st.text_input(
-            "Número proceso judicial"
-        )
-
-        agregar = st.form_submit_button(
-            "Agregar Proceso"
-        )
-
-        if agregar:
-
-            # ======================================
-            # VALIDAR CAMPO VACIO
-            # ======================================
-
-            if not nuevo_proceso_cliente.strip():
-
-                st.warning(
-                    "⚠️ Ingrese un número de proceso"
+                st.error(
+                    f"❌ Tu plan {plan_cliente} permite máximo {limite_plan} procesos"
                 )
 
             else:
 
-                # ======================================
-                # LIMITES POR PLAN
-                # ======================================
-
-                limites = {
-                    "FREE": 1,
-                    "BASICO": 5,
-                    "PREMIUM": 20,
-                    "GOLD": 100
-                }
-
-                limite_actual = limites.get(
-                    plan_cliente,
-                    1
-                )
-
                 cursor.execute("""
 
-                SELECT COUNT(*)
-
+                SELECT id
                 FROM procesos
-
                 WHERE cliente = %s
+                AND numero_proceso = %s
 
                 """, (
 
                     cliente_logueado,
+                    numero_proceso
 
                 ))
 
-                total_procesos = cursor.fetchone()[0]
+                existe = cursor.fetchone()
 
-                if total_procesos >= limite_actual:
+                if existe:
 
-                    st.error(
-                        f"❌ Tu plan {plan_cliente} permite máximo {limite_actual} procesos"
+                    st.warning(
+                        "⚠️ El proceso ya existe"
                     )
 
                 else:
 
-                    # ======================================
-                    # VALIDAR DUPLICADO
-                    # ======================================
-
                     cursor.execute("""
 
-                    SELECT id
+                    INSERT INTO procesos (
 
-                    FROM procesos
+                        cliente,
+                        email,
+                        whatsapp,
+                        plan,
+                        numero_proceso
 
-                    WHERE cliente = %s
+                    )
 
-                    AND numero_proceso = %s
+                    VALUES (%s,%s,%s,%s,%s)
 
                     """, (
 
                         cliente_logueado,
-                        nuevo_proceso_cliente
+                        email_cliente,
+                        whatsapp_cliente,
+                        plan_cliente,
+                        numero_proceso
 
                     ))
 
-                    proceso_existente = cursor.fetchone()
+                    conn.commit()
 
-                    if proceso_existente:
+                    st.success(
+                        "✅ Proceso agregado correctamente"
+                    )
 
-                        st.warning(
-                            "⚠️ El proceso ya existe"
-                        )
+                    st.rerun()
 
-                    else:
+# =========================================
+# CONSULTAR PROCESOS
+# =========================================
 
-                        # ======================================
-                        # INSERTAR PROCESO
-                        # ======================================
+df = pd.read_sql("""
 
-                        cursor.execute("""
+SELECT *
+FROM procesos
+WHERE cliente = %s
+ORDER BY id DESC
 
-                        INSERT INTO procesos (
+""", conn, params=(cliente_logueado,))
 
-                            cliente,
-                            email,
-                            whatsapp,
-                            plan,
-                            numero_proceso
+# =========================================
+# DASHBOARD VACIO
+# =========================================
 
-                        )
+if df.empty:
 
-                        VALUES (%s, %s, %s, %s, %s)
+    st.warning(
+        "No existen procesos registrados"
+    )
 
-                        """, (
+else:
 
-                            cliente_logueado,
-                            email_cliente,
-                            whatsapp_cliente,
-                            plan_cliente,
-                            nuevo_proceso_cliente
-
-                        ))
-
-                        conn.commit()
-
-                        st.success(
-                            "✅ Proceso agregado correctamente"
-                        )
-
-                        st.rerun()
-
-    # ======================================
-    # CONSULTAR PROCESOS
-    # ======================================
-
-    df = pd.read_sql("""
-
-    SELECT *
-
-    FROM procesos
-
-    WHERE cliente = %s
-
-    ORDER BY id DESC
-
-    """, conn, params=(cliente_logueado,))
-
-    if df.empty:
-
-        st.warning(
-            "No existen procesos registrados"
-        )
-
-        st.stop()
-
-    # ======================================
+    # =====================================
     # METRICAS
-    # ======================================
+    # =====================================
 
     col1, col2, col3 = st.columns(3)
 
@@ -725,7 +714,6 @@ else:
         ultima_fecha = df.iloc[0]["fecha_actuacion"]
 
         if ultima_fecha is None:
-
             ultima_fecha = "Sin actualizar"
 
         st.metric(
@@ -740,9 +728,9 @@ else:
             plan_cliente
         )
 
-    # ======================================
+    # =====================================
     # TABLA
-    # ======================================
+    # =====================================
 
     st.subheader("📂 Procesos")
 
@@ -751,8 +739,18 @@ else:
         use_container_width=True
     )
 
-# ======================================
-# CERRAR CONEXION
-# ======================================
+# =========================================
+# FOOTER
+# =========================================
+
+st.markdown("---")
+
+st.caption(
+    "Nexus Legal AI © 2026 - Automatización Judicial Inteligente"
+)
+
+# =========================================
+# CLOSE DB
+# =========================================
 
 conn.close()
