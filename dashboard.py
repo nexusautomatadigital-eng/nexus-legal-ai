@@ -858,7 +858,7 @@ else:
 
         </div>
 
-        """, height=350)
+        """, height=700, scrolling=True)
 
 # =========================================
 # FOOTER
