@@ -729,15 +729,124 @@ else:
         )
 
     # =====================================
-    # TABLA
+    # DASHBOARD PROCESOS PRO
     # =====================================
 
-    st.subheader("📂 Procesos")
+    st.subheader("📂 Mis Procesos Judiciales")
 
-    st.dataframe(
-        df,
-        use_container_width=True
-    )
+    for _, row in df.iterrows():
+
+        estado = row["estado"]
+
+        color_estado = "#22c55e"
+
+        if estado == "PENDIENTE":
+            color_estado = "#facc15"
+
+        elif estado == "ERROR":
+            color_estado = "#ef4444"
+
+        elif estado == "ACTUALIZADO":
+            color_estado = "#22c55e"
+
+        fecha_actuacion = row["fecha_actuacion"]
+
+        if fecha_actuacion is None:
+            fecha_actuacion = "Sin actualizar"
+
+        juzgado = row["juzgado"]
+
+        if juzgado is None:
+            juzgado = "No disponible"
+
+        demandante = row["demandante"]
+
+        if demandante is None:
+            demandante = "No disponible"
+
+        demandado = row["demandado"]
+
+        if demandado is None:
+            demandado = "No disponible"
+
+        resumen_ia = row["resumen_ia"]
+
+        if resumen_ia is None:
+            resumen_ia = """
+            Nexus AI aún no ha generado resumen jurídico.
+            """
+
+        st.markdown(f"""
+
+        <div style="
+            background:#111827;
+            padding:25px;
+            border-radius:18px;
+            margin-bottom:20px;
+            border:1px solid #1f2937;
+            box-shadow:0 0 15px rgba(0,0,0,0.25);
+        ">
+
+        <h3 style="color:white;">
+        ⚖️ Proceso Judicial
+        </h3>
+
+        <p style="
+            color:#60a5fa;
+            font-size:18px;
+            font-weight:bold;
+        ">
+        {row["numero_proceso"]}
+        </p>
+
+        <div style="
+            display:inline-block;
+            background:{color_estado};
+            color:white;
+            padding:6px 12px;
+            border-radius:12px;
+            font-size:14px;
+            font-weight:bold;
+            margin-bottom:15px;
+        ">
+        {estado}
+        </div>
+
+        <hr>
+
+        <p style="color:white;">
+        📅 <b>Última actuación:</b><br>
+        {fecha_actuacion}
+        </p>
+
+        <p style="color:white;">
+        🏛️ <b>Juzgado:</b><br>
+        {juzgado}
+        </p>
+
+        <p style="color:white;">
+        👤 <b>Demandante:</b><br>
+        {demandante}
+        </p>
+
+        <p style="color:white;">
+        ⚖️ <b>Demandado:</b><br>
+        {demandado}
+        </p>
+
+        <p style="
+            color:#d1d5db;
+            background:#1f2937;
+            padding:15px;
+            border-radius:12px;
+        ">
+        🤖 <b>Resumen IA:</b><br><br>
+        {resumen_ia}
+        </p>
+
+        </div>
+
+        """, unsafe_allow_html=True)
 
 # =========================================
 # FOOTER

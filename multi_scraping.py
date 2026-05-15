@@ -1,10 +1,8 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
+import time
 import pandas as pd
 import psycopg2
-import time
+from dotenv import load_dotenv
 
 from twilio.rest import Client
 
@@ -12,78 +10,86 @@ import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+
 from webdriver_manager.chrome import ChromeDriverManager
 
 from selenium.webdriver.common.by import By
+
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# ======================================
-# LEER CLIENTES
-# ======================================
+# =========================================
+# LOAD ENV
+# =========================================
 
-df_clientes = pd.read_csv("clientes_procesos.csv")
+load_dotenv()
 
-print(df_clientes)
+# =========================================
+# CONFIG
+# =========================================
 
-# ======================================
-# CONEXION POSTGRESQL
-# ======================================
+print("\n🚀 INICIANDO NEXUS ENGINE\n")
+
+# =========================================
+# POSTGRESQL
+# =========================================
 
 conn = psycopg2.connect(
 
-    host=os.getenv("SUPABASE_HOST"),
+    host=os.getenv("DB_HOST"),
 
-    database=os.getenv("SUPABASE_DB"),
+    database=os.getenv("DB_NAME"),
 
-    user=os.getenv("SUPABASE_USER"),
+    user=os.getenv("DB_USER"),
 
-    password=os.getenv("SUPABASE_PASSWORD"),
+    password=os.getenv("DB_PASSWORD"),
 
-    port=os.getenv("SUPABASE_PORT"),
+    port=os.getenv("DB_PORT"),
 
     sslmode="require"
 
 )
+
 cursor = conn.cursor()
 
-# ======================================
-# CREAR TABLA
-# ======================================
+# =========================================
+# CREAR COLUMNAS NUEVAS
+# =========================================
 
 cursor.execute("""
 
-CREATE TABLE IF NOT EXISTS procesos (
+ALTER TABLE procesos
+ADD COLUMN IF NOT EXISTS estado TEXT DEFAULT 'PENDIENTE'
 
-    id SERIAL PRIMARY KEY,
+""")
 
-    cliente TEXT,
-    email TEXT,
-    whatsapp TEXT,
-    plan TEXT,
+cursor.execute("""
 
-    numero_proceso TEXT,
-    fecha_actuacion TEXT,
-    juzgado TEXT,
-    demandante TEXT,
-    demandado TEXT,
+ALTER TABLE procesos
+ADD COLUMN IF NOT EXISTS resumen_ia TEXT
 
-    fecha_consulta TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+""")
 
-)
+cursor.execute("""
+
+ALTER TABLE procesos
+ADD COLUMN IF NOT EXISTS ultima_revision TIMESTAMP
 
 """)
 
 conn.commit()
 
-# ======================================
-# CONFIG BREVO EMAIL
-# ======================================
+# =========================================
+# CONFIG BREVO
+# =========================================
 
 configuration = sib_api_v3_sdk.Configuration()
 
-configuration.api_key['api-key'] = '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'
+configuration.api_key['api-key'] = os.getenv(
+    "BREVO_API_KEY"
+)
 
 api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
 
@@ -91,104 +97,176 @@ api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
 
 )
 
-# ======================================
+# =========================================
 # CONFIG TWILIO
-# ======================================
+# =========================================
 
-account_sid = "ACc0d8988b16c736aeb6faa8731065d7fd"
+account_sid = os.getenv("TWILIO_SID")
 
-auth_token = "9bc3b5b6e94027dcd7dad5ba692917f9"
+auth_token = os.getenv("TWILIO_TOKEN")
 
 twilio_client = Client(
     account_sid,
     auth_token
 )
 
-# ======================================
+# =========================================
+# CHROME OPTIONS
+# =========================================
+
+chrome_options = Options()
+
+chrome_options.add_argument("--headless=new")
+
+chrome_options.add_argument("--no-sandbox")
+
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+chrome_options.add_argument("--disable-gpu")
+
+chrome_options.add_argument("--window-size=1920,1080")
+
+chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
+# =========================================
 # NAVEGADOR
-# ======================================
-
-# ======================================
-# CHROME OPTIONS GITHUB ACTIONS
-# ======================================
-
-options = webdriver.ChromeOptions()
-
-options.add_argument("--headless")
-
-options.add_argument("--no-sandbox")
-
-options.add_argument("--disable-dev-shm-usage")
-
-options.add_argument("--disable-gpu")
-
-options.add_argument("--window-size=1920,1080")
-
-options.add_argument("--remote-debugging-port=9222")
-
-# ======================================
-# DRIVER
-# ======================================
+# =========================================
 
 driver = webdriver.Chrome(
 
-    service=Service(ChromeDriverManager().install()),
+    service=Service(
+        ChromeDriverManager().install()
+    ),
 
-    options=options
+    options=chrome_options
 
 )
-# ======================================
-# LOOP CLIENTES
-# ======================================
 
-for _, row in df_clientes.iterrows():
+# =========================================
+# LEER PROCESOS SUPABASE
+# =========================================
+
+query = """
+
+SELECT *
+
+FROM procesos
+
+ORDER BY id DESC
+
+"""
+
+df_procesos = pd.read_sql(
+    query,
+    conn
+)
+
+print(df_procesos)
+
+# =========================================
+# VALIDAR PROCESOS
+# =========================================
+
+if df_procesos.empty:
+
+    print("❌ No existen procesos")
+
+    conn.close()
+
+    driver.quit()
+
+    exit()
+
+# =========================================
+# LOOP PROCESOS
+# =========================================
+
+for _, row in df_procesos.iterrows():
+
+    proceso_id = row["id"]
 
     cliente = row["cliente"]
+
     email = row["email"]
+
     whatsapp = str(row["whatsapp"])
+
     plan = row["plan"]
-    proceso = row["proceso"]
+
+    numero_proceso = row["numero_proceso"]
+
+    fecha_guardada = row["fecha_actuacion"]
 
     print(f"\n🔎 Consultando: {cliente}")
 
+    print(f"⚖️ Proceso: {numero_proceso}")
+
     try:
 
-        # ======================================
-        # ABRIR PORTAL
-        # ======================================
+        # =====================================
+        # ACTUALIZAR ESTADO
+        # =====================================
+
+        cursor.execute("""
+
+        UPDATE procesos
+
+        SET estado = 'CONSULTANDO'
+
+        WHERE id = %s
+
+        """, (
+
+            proceso_id,
+
+        ))
+
+        conn.commit()
+
+        # =====================================
+        # ABRIR RAMA JUDICIAL
+        # =====================================
 
         driver.get(
             "https://consultaprocesos.ramajudicial.gov.co/"
         )
 
+        driver.maximize_window()
+
         time.sleep(5)
 
-        # ======================================
-        # CLICK NUMERO RADICACION
-        # ======================================
+        # =====================================
+        # CLICK RADICACION
+        # =====================================
 
-        cards = driver.find_elements(By.CLASS_NAME, "v-card")
+        cards = driver.find_elements(
+            By.CLASS_NAME,
+            "v-card"
+        )
 
         cards[0].click()
 
         time.sleep(3)
 
-        # ======================================
+        # =====================================
         # TODOS LOS PROCESOS
-        # ======================================
+        # =====================================
 
         todos = driver.find_element(
+
             By.XPATH,
+
             "//*[contains(text(),'Todos los Procesos')]"
+
         )
 
         todos.click()
 
         time.sleep(2)
 
-        # ======================================
-        # ESCRIBIR PROCESO
-        # ======================================
+        # =====================================
+        # CAMPO PROCESO
+        # =====================================
 
         campo = driver.find_element(
 
@@ -198,15 +276,20 @@ for _, row in df_clientes.iterrows():
 
         )
 
-        campo.send_keys(str(proceso))
+        campo.clear()
+
+        campo.send_keys(str(numero_proceso))
 
         time.sleep(2)
 
-        # ======================================
-        # CONSULTAR
-        # ======================================
+        # =====================================
+        # BOTON CONSULTAR
+        # =====================================
 
-        botones = driver.find_elements(By.TAG_NAME, "button")
+        botones = driver.find_elements(
+            By.TAG_NAME,
+            "button"
+        )
 
         for boton in botones:
 
@@ -218,43 +301,94 @@ for _, row in df_clientes.iterrows():
 
         print("✅ Consulta ejecutada")
 
-        time.sleep(5)
+        time.sleep(10)
 
-        # ======================================
-        # VALIDAR PROCESO
-        # ======================================
+        # =====================================
+        # VALIDAR RESULTADO
+        # =====================================
 
         if "no generó resultados" in driver.page_source:
 
-            print(f"❌ Proceso no encontrado: {proceso}")
+            print("❌ Proceso no encontrado")
+
+            cursor.execute("""
+
+            UPDATE procesos
+
+            SET estado = 'ERROR'
+
+            WHERE id = %s
+
+            """, (
+
+                proceso_id,
+
+            ))
+
+            conn.commit()
 
             continue
 
-        # ======================================
+        # =====================================
         # ESPERAR TABLA
-        # ======================================
+        # =====================================
 
-        WebDriverWait(driver, 30).until(
+        # =====================================
+        # ESPERAR RESULTADOS
+        # =====================================
+
+        WebDriverWait(driver, 40).until(
 
             EC.presence_of_element_located(
-                (By.TAG_NAME, "tr")
+
+                (
+                    By.XPATH,
+                    "//table"
+                )
+
             )
 
         )
 
-        filas = driver.find_elements(By.TAG_NAME, "tr")
+        time.sleep(5)
 
-        print(f"Filas encontradas: {len(filas)}")
+        # =====================================
+        # BUSCAR FILAS
+        # =====================================
+
+        filas = driver.find_elements(
+
+            By.XPATH,
+
+            "//table//tr"
+
+        )
+
+        print(f"📄 Filas encontradas: {len(filas)}")
+
+        # =====================================
+        # VALIDAR FILAS
+        # =====================================
 
         if len(filas) < 2:
 
-            print(f"❌ Sin datos para: {proceso}")
+            print("❌ No se encontraron resultados")
 
             continue
 
-        # ======================================
+
+
+        print(f"📄 Filas encontradas: {len(filas)}")
+
+        if len(filas) < 2:
+
+            print("❌ Sin datos")
+
+            continue
+
+        # =====================================
         # EXTRAER DATOS
-        # ======================================
+        # =====================================
 
         fila = filas[1]
 
@@ -266,21 +400,15 @@ for _, row in df_clientes.iterrows():
 
         if len(lineas) < 6:
 
-            print(f"❌ Datos incompletos: {proceso}")
+            print("❌ Datos incompletos")
 
             continue
 
-        numero_proceso = lineas[0]
+        numero_actual = lineas[0]
 
         fecha_radicacion = lineas[1]
 
         fecha_actuacion = lineas[2]
-
-        # ======================================
-        # SOLO PARA PRUEBAS
-        # ======================================
-
-        fecha_actuacion = "2037-01-01"
 
         juzgado = lineas[3]
 
@@ -288,186 +416,205 @@ for _, row in df_clientes.iterrows():
 
         demandado = lineas[5]
 
-        # ======================================
-        # CONSULTAR ULTIMA FECHA
-        # ======================================
+        # =====================================
+        # IA RESUMEN
+        # =====================================
 
-        cursor.execute("""
+        resumen_ia = f"""
 
-        SELECT fecha_actuacion
+Nueva actuación detectada para el proceso
+{numero_actual}.
 
-        FROM procesos
+Juzgado:
+{juzgado}
 
-        WHERE numero_proceso = %s
+Demandante:
+{demandante}
 
-        ORDER BY id DESC
+Demandado:
+{demandado}
 
-        LIMIT 1
-
-        """, (numero_proceso,))
-
-        resultado = cursor.fetchone()
-
-        # ======================================
-        # DETECTAR CAMBIO
-        # ======================================
-
-        if resultado:
-
-            fecha_anterior = resultado[0]
-
-            if fecha_anterior != fecha_actuacion:
-
-                print("🚨 CAMBIO DETECTADO")
-
-                print("Anterior:", fecha_anterior)
-
-                print("Nuevo:", fecha_actuacion)
-
-                mensaje = f"""
-
-🚨 Nexus Legal AI
-
-Cliente: {cliente}
-
-Proceso: {numero_proceso}
-
-Nueva actuación detectada
-
-Fecha: {fecha_actuacion}
+Última actuación:
+{fecha_actuacion}
 
 """
 
-                # ======================================
-                # ENVIAR WHATSAPP
-                # ======================================
+        # =====================================
+        # DETECTAR CAMBIOS
+        # =====================================
 
-                try:
+        cambio_detectado = False
 
-                    twilio_client.messages.create(
+        if fecha_guardada is None:
 
-                        from_='whatsapp:+14155238886',
+            cambio_detectado = True
 
-                        body=mensaje,
+        elif str(fecha_guardada) != str(fecha_actuacion):
 
-                        to=f'whatsapp:+{whatsapp}'
+            cambio_detectado = True
 
-                    )
-
-                    print("📲 WhatsApp enviado")
-
-                except Exception as e:
-
-                    print("❌ Error WhatsApp:", e)
-
-                # ======================================
-                # ENVIAR EMAIL
-                # ======================================
-
-                try:
-
-                    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-
-                        to=[{
-                            "email": email,
-                            "name": cliente
-                        }],
-
-                        sender={
-                            "email": "nexusautomata.digital@gmail.com",
-                            "name": "Nexus Legal AI"
-                        },
-
-                        subject="🚨 Nueva actuación judicial",
-
-                        html_content=f"""
-
-                        <h2>🚨 Nexus Legal AI</h2>
-
-                        <p><b>Cliente:</b> {cliente}</p>
-
-                        <p><b>Proceso:</b> {numero_proceso}</p>
-
-                        <p><b>Nueva actuación:</b> {fecha_actuacion}</p>
-
-                        <p>Ingrese al dashboard para revisar detalles.</p>
-
-                        """
-
-                    )
-
-                    api_instance.send_transac_email(
-                        send_smtp_email
-                    )
-
-                    print("📧 Email enviado")
-
-                except Exception as e:
-
-                    print("❌ Error Email:", e)
-
-            else:
-
-                print("✅ Sin cambios")
-
-        else:
-
-            print("🆕 Proceso nuevo")
-
-        # ======================================
-        # GUARDAR REGISTRO
-        # ======================================
+        # =====================================
+        # ACTUALIZAR PROCESO
+        # =====================================
 
         cursor.execute("""
 
-        INSERT INTO procesos (
+        UPDATE procesos
 
-            cliente,
-            email,
-            whatsapp,
-            plan,
+        SET
 
-            numero_proceso,
-            fecha_actuacion,
-            juzgado,
-            demandante,
-            demandado
+            fecha_actuacion = %s,
+            juzgado = %s,
+            demandante = %s,
+            demandado = %s,
+            resumen_ia = %s,
+            estado = 'ACTUALIZADO',
+            ultima_revision = NOW()
 
-        )
-
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        WHERE id = %s
 
         """, (
 
-            cliente,
-            email,
-            whatsapp,
-            plan,
-
-            numero_proceso,
             fecha_actuacion,
             juzgado,
             demandante,
-            demandado
+            demandado,
+            resumen_ia,
+            proceso_id
 
         ))
 
         conn.commit()
 
-        print(f"✅ Guardado: {cliente}")
+        print("✅ Proceso actualizado")
+
+        # =====================================
+        # ENVIAR ALERTAS
+        # =====================================
+
+        if cambio_detectado:
+
+            print("🚨 CAMBIO DETECTADO")
+
+            mensaje = f"""
+
+🚨 Nexus Legal AI
+
+Proceso:
+{numero_actual}
+
+Nueva actuación:
+{fecha_actuacion}
+
+Juzgado:
+{juzgado}
+
+Ingrese al dashboard para revisar detalles.
+
+"""
+
+            # =================================
+            # WHATSAPP
+            # =================================
+
+            try:
+
+                twilio_client.messages.create(
+
+                    from_='whatsapp:+14155238886',
+
+                    body=mensaje,
+
+                    to=f'whatsapp:+{whatsapp}'
+
+                )
+
+                print("📲 WhatsApp enviado")
+
+            except Exception as e:
+
+                print("❌ Error WhatsApp:", e)
+
+            # =================================
+            # EMAIL
+            # =================================
+
+            try:
+
+                send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+
+                    to=[{
+                        "email": email,
+                        "name": cliente
+                    }],
+
+                    sender={
+                        "email": "nexusautomata.digital@gmail.com",
+                        "name": "Nexus Legal AI"
+                    },
+
+                    subject="🚨 Nueva actuación judicial",
+
+                    html_content=f"""
+
+                    <h2>🚨 Nexus Legal AI</h2>
+
+                    <p><b>Proceso:</b> {numero_actual}</p>
+
+                    <p><b>Fecha actuación:</b> {fecha_actuacion}</p>
+
+                    <p><b>Juzgado:</b> {juzgado}</p>
+
+                    <p>Ingrese al dashboard para revisar.</p>
+
+                    """
+
+                )
+
+                api_instance.send_transac_email(
+                    send_smtp_email
+                )
+
+                print("📧 Email enviado")
+
+            except Exception as e:
+
+                print("❌ Error Email:", e)
+
+        else:
+
+            print("✅ Sin cambios")
 
     except Exception as e:
 
         conn.rollback()
 
-        print(f"❌ Error con {cliente}: {e}")
+        print(f"❌ Error proceso {numero_proceso}")
 
-# ======================================
-# CERRAR
-# ======================================
+        print(e)
 
-conn.close()
+        cursor.execute("""
+
+        UPDATE procesos
+
+        SET estado = 'ERROR'
+
+        WHERE id = %s
+
+        """, (
+
+            proceso_id,
+
+        ))
+
+        conn.commit()
+
+# =========================================
+# FINALIZAR
+# =========================================
 
 driver.quit()
 
-print("\n🚀 SISTEMA MULTICLIENTE FINALIZADO")
+conn.close()
+
+print("\n✅ NEXUS ENGINE FINALIZADO\n")
