@@ -817,6 +817,11 @@ else:
 
         <hr>
 
+        <p style="color:#9ca3af; font-size:13px;">
+        🕒 Última revisión Nexus AI:<br>
+        {row["fecha_consulta"]}
+        </p>
+
         <p>
         📅 <b>Última actuación:</b><br>
         {fecha_actuacion}
@@ -828,13 +833,13 @@ else:
         </p>
 
         <p>
-        👤 <b>Demandante:</b><br>
-        {demandante}
+        👤 <b>Demandante</b><br>
+        {demandante.replace("Demandante:", "").strip()}
         </p>
 
         <p>
-        ⚖️ <b>Demandado:</b><br>
-        {demandado}
+        ⚖️ <b>Demandado</b><br>
+        {demandado.replace("Demandado:", "").strip()}
         </p>
 
         <div style="
@@ -854,7 +859,7 @@ else:
 
         </div>
 
-        """, height=420)
+        """, height=350)
 
 # =========================================
 # FOOTER
