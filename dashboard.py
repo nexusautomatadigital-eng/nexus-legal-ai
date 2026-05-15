@@ -5,6 +5,7 @@ import bcrypt
 import time
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+import streamlit.components.v1 as components
 
 load_dotenv()
 
@@ -776,7 +777,7 @@ else:
             Nexus AI aún no ha generado resumen jurídico.
             """
 
-        st.markdown(f"""
+        components.html(f"""
 
         <div style="
             background:#111827;
@@ -785,9 +786,11 @@ else:
             margin-bottom:20px;
             border:1px solid #1f2937;
             box-shadow:0 0 15px rgba(0,0,0,0.25);
+            color:white;
+            font-family:Arial;
         ">
 
-        <h3 style="color:white;">
+        <h3>
         ⚖️ Proceso Judicial
         </h3>
 
@@ -814,39 +817,44 @@ else:
 
         <hr>
 
-        <p style="color:white;">
+        <p>
         📅 <b>Última actuación:</b><br>
         {fecha_actuacion}
         </p>
 
-        <p style="color:white;">
+        <p>
         🏛️ <b>Juzgado:</b><br>
         {juzgado}
         </p>
 
-        <p style="color:white;">
+        <p>
         👤 <b>Demandante:</b><br>
         {demandante}
         </p>
 
-        <p style="color:white;">
+        <p>
         ⚖️ <b>Demandado:</b><br>
         {demandado}
         </p>
 
-        <p style="
-            color:#d1d5db;
+        <div style="
             background:#1f2937;
             padding:15px;
             border-radius:12px;
+            margin-top:15px;
         ">
-        🤖 <b>Resumen IA:</b><br><br>
+
+        <b>🤖 Resumen IA</b>
+
+        <br><br>
+
         {resumen_ia}
-        </p>
 
         </div>
 
-        """, unsafe_allow_html=True)
+        </div>
+
+        """, height=420)
 
 # =========================================
 # FOOTER
