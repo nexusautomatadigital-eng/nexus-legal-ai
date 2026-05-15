@@ -776,77 +776,77 @@ else:
             Nexus AI aún no ha generado resumen jurídico.
             """
 
-        st.markdown(f"""
+    st.markdown(f"""
 
-        <div style="
-            background:#111827;
-            padding:25px;
-            border-radius:18px;
-            margin-bottom:20px;
-            border:1px solid #1f2937;
-            box-shadow:0 0 15px rgba(0,0,0,0.25);
-        ">
+    <div style="
+        background:#111827;
+        padding:25px;
+        border-radius:18px;
+        margin-bottom:20px;
+        border:1px solid #1f2937;
+        box-shadow:0 0 15px rgba(0,0,0,0.25);
+    ">
 
-        <h3 style="color:white;">
-        ⚖️ Proceso Judicial
-        </h3>
+    <h3 style="color:white;">
+    ⚖️ Proceso Judicial
+    </h3>
 
-        <p style="
-            color:#60a5fa;
-            font-size:18px;
-            font-weight:bold;
-        ">
-        {row["numero_proceso"]}
-        </p>
+    <p style="
+        color:#60a5fa;
+        font-size:18px;
+        font-weight:bold;
+    ">
+    {row["numero_proceso"]}
+    </p>
 
-        <div style="
-            display:inline-block;
-            background:{color_estado};
-            color:white;
-            padding:6px 12px;
-            border-radius:12px;
-            font-size:14px;
-            font-weight:bold;
-            margin-bottom:15px;
-        ">
-        {estado}
-        </div>
+    <div style="
+        display:inline-block;
+        background:{color_estado};
+        color:white;
+        padding:6px 12px;
+        border-radius:12px;
+        font-size:14px;
+        font-weight:bold;
+        margin-bottom:15px;
+    ">
+    {estado}
+    </div>
 
-        <hr>
+    <hr>
 
-        <p style="color:white;">
-        📅 <b>Última actuación:</b><br>
-        {fecha_actuacion}
-        </p>
+    <p style="color:white;">
+    📅 <b>Última actuación:</b><br>
+    {fecha_actuacion}
+    </p>
 
-        <p style="color:white;">
-        🏛️ <b>Juzgado:</b><br>
-        {juzgado}
-        </p>
+    <p style="color:white;">
+    🏛️ <b>Juzgado:</b><br>
+    {juzgado}
+    </p>
 
-        <p style="color:white;">
-        👤 <b>Demandante:</b><br>
-        {demandante}
-        </p>
+    <p style="color:white;">
+    👤 <b>Demandante:</b><br>
+    {demandante}
+    </p>
 
-        <p style="color:white;">
-        ⚖️ <b>Demandado:</b><br>
-        {demandado}
-        </p>
+    <p style="color:white;">
+    ⚖️ <b>Demandado:</b><br>
+    {demandado}
+    </p>
 
-        <p style="
-            color:#d1d5db;
-            background:#1f2937;
-            padding:15px;
-            border-radius:12px;
-        ">
-        🤖 <b>Resumen IA:</b><br><br>
-        {resumen_ia}
-        </p>
+    <p style="
+        color:#d1d5db;
+        background:#1f2937;
+        padding:15px;
+        border-radius:12px;
+    ">
+    🤖 <b>Resumen IA:</b><br><br>
+    {resumen_ia}
+    </p>
 
-        </div>
+    </div>
 
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # =========================================
 # FOOTER
