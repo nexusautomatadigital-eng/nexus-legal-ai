@@ -36,7 +36,6 @@ st.markdown("""
     border-radius:15px;
     background:#111827;
     color:white;
-    min-height:420px;
 }
 
 .plan-title{
