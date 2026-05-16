@@ -2,7 +2,9 @@ import os
 import time
 import pandas as pd
 import psycopg2
+import hashlib
 from dotenv import load_dotenv
+
 
 from twilio.rest import Client
 
@@ -142,6 +144,8 @@ driver = webdriver.Chrome(
 
 )
 
+driver.set_page_load_timeout(60)
+
 # =========================================
 # LEER PROCESOS SUPABASE
 # =========================================
@@ -197,125 +201,25 @@ for _, row in df_procesos.iterrows():
 
     fecha_guardada = row["fecha_actuacion"]
 
+    hash_anterior = row["hash_consulta"]
+
     print(f"\n🔎 Consultando: {cliente}")
 
     print(f"⚖️ Proceso: {numero_proceso}")
 
-    try:
+    for intento in range(3):
 
-        # =====================================
-        # ACTUALIZAR ESTADO
-        # =====================================
+        try:
 
-        cursor.execute("""
-
-        UPDATE procesos
-
-        SET estado = 'CONSULTANDO'
-
-        WHERE id = %s
-
-        """, (
-
-            proceso_id,
-
-        ))
-
-        conn.commit()
-
-        # =====================================
-        # ABRIR RAMA JUDICIAL
-        # =====================================
-
-        driver.get(
-            "https://consultaprocesos.ramajudicial.gov.co/"
-        )
-
-        driver.maximize_window()
-
-        time.sleep(5)
-
-        # =====================================
-        # CLICK RADICACION
-        # =====================================
-
-        cards = driver.find_elements(
-            By.CLASS_NAME,
-            "v-card"
-        )
-
-        cards[0].click()
-
-        time.sleep(3)
-
-        # =====================================
-        # TODOS LOS PROCESOS
-        # =====================================
-
-        todos = driver.find_element(
-
-            By.XPATH,
-
-            "//*[contains(text(),'Todos los Procesos')]"
-
-        )
-
-        todos.click()
-
-        time.sleep(2)
-
-        # =====================================
-        # CAMPO PROCESO
-        # =====================================
-
-        campo = driver.find_element(
-
-            By.XPATH,
-
-            "//input[contains(@placeholder,'Ingrese los 23 dígitos')]"
-
-        )
-
-        campo.clear()
-
-        campo.send_keys(str(numero_proceso))
-
-        time.sleep(2)
-
-        # =====================================
-        # BOTON CONSULTAR
-        # =====================================
-
-        botones = driver.find_elements(
-            By.TAG_NAME,
-            "button"
-        )
-
-        for boton in botones:
-
-            if "CONSULTAR" in boton.text:
-
-                boton.click()
-
-                break
-
-        print("✅ Consulta ejecutada")
-
-        time.sleep(10)
-
-        # =====================================
-        # VALIDAR RESULTADO
-        # =====================================
-
-        if "no generó resultados" in driver.page_source:
-
-            print("❌ Proceso no encontrado")
+            # =====================================
+            # ACTUALIZAR ESTADO
+            # =====================================
 
             cursor.execute("""
 
             UPDATE procesos
 
-            SET estado = 'ERROR'
+            SET estado = 'CONSULTANDO'
 
             WHERE id = %s
 
@@ -327,100 +231,215 @@ for _, row in df_procesos.iterrows():
 
             conn.commit()
 
-            continue
+            # =====================================
+            # ABRIR RAMA JUDICIAL
+            # =====================================
 
-        # =====================================
-        # ESPERAR TABLA
-        # =====================================
+            driver.get(
+                "https://consultaprocesos.ramajudicial.gov.co/"
+            )
 
-        # =====================================
-        # ESPERAR RESULTADOS
-        # =====================================
+            driver.maximize_window()
 
-        WebDriverWait(driver, 40).until(
+            time.sleep(5)
 
-            EC.presence_of_element_located(
+            # =====================================
+            # CLICK RADICACION
+            # =====================================
 
-                (
-                    By.XPATH,
-                    "//table"
+            cards = driver.find_elements(
+               By.CLASS_NAME,
+               "v-card"
+            )
+
+            cards[0].click()
+
+            time.sleep(3)
+
+            # =====================================
+            # TODOS LOS PROCESOS
+            # =====================================
+
+            todos = driver.find_element(
+
+                By.XPATH,
+
+                "//*[contains(text(),'Todos los Procesos')]"
+
+            )
+
+            todos.click()
+
+            time.sleep(2)
+
+            # =====================================
+            # CAMPO PROCESO
+            # =====================================
+
+            campo = driver.find_element(
+
+                By.XPATH,
+
+                "//input[contains(@placeholder,'Ingrese los 23 dígitos')]"
+
+            )
+
+            campo.clear()
+
+            campo.send_keys(str(numero_proceso))
+
+            time.sleep(2)
+
+            # =====================================
+            # BOTON CONSULTAR
+            # =====================================
+
+            botones = driver.find_elements(
+                By.TAG_NAME,
+                "button"
+            )
+
+            for boton in botones:
+
+                if "CONSULTAR" in boton.text:
+
+                    boton.click()
+
+                    break
+
+            print("✅ Consulta ejecutada")
+
+            time.sleep(10)
+
+            # =====================================
+            # VALIDAR RESULTADO
+            # =====================================
+
+            if "no generó resultados" in driver.page_source:
+
+                print("❌ Proceso no encontrado")
+
+                cursor.execute("""
+
+                UPDATE procesos
+
+                SET estado = 'ERROR'
+
+                WHERE id = %s
+
+                """, (
+
+                    proceso_id,
+
+                ))
+
+                conn.commit()
+
+                continue
+
+            # =====================================
+            # ESPERAR TABLA
+            # =====================================
+
+            # =====================================
+            # ESPERAR RESULTADOS
+            # =====================================
+
+            WebDriverWait(driver, 40).until(
+
+                EC.presence_of_element_located(
+
+                    (
+                        By.XPATH,
+                        "//table"
+                    )
+
                 )
 
             )
 
-        )
+            time.sleep(5)
 
-        time.sleep(5)
+            # =====================================
+            # BUSCAR FILAS
+            # =====================================
 
-        # =====================================
-        # BUSCAR FILAS
-        # =====================================
+            filas = driver.find_elements(
 
-        filas = driver.find_elements(
+                By.XPATH,
 
-            By.XPATH,
+                "//table//tr"
 
-            "//table//tr"
+            )
 
-        )
+            print(f"📄 Filas encontradas: {len(filas)}")
 
-        print(f"📄 Filas encontradas: {len(filas)}")
+            # =====================================
+            # VALIDAR FILAS
+            # =====================================
 
-        # =====================================
-        # VALIDAR FILAS
-        # =====================================
+            if len(filas) < 2:
 
-        if len(filas) < 2:
+                print("❌ No se encontraron resultados")
 
-            print("❌ No se encontraron resultados")
-
-            continue
+                continue
 
 
 
-        print(f"📄 Filas encontradas: {len(filas)}")
+            print(f"📄 Filas encontradas: {len(filas)}")
 
-        if len(filas) < 2:
+            if len(filas) < 2:
 
-            print("❌ Sin datos")
+                print("❌ Sin datos")
 
-            continue
+                continue
 
-        # =====================================
-        # EXTRAER DATOS
-        # =====================================
+            # =====================================
+            # EXTRAER DATOS
+            # =====================================
 
-        fila = filas[1]
+            fila = filas[1]
 
-        texto = fila.text
+            texto = fila.text
 
-        print(texto)
+            print(texto)
 
-        lineas = texto.split("\n")
+            lineas = texto.split("\n")
 
-        if len(lineas) < 6:
+            if len(lineas) < 6:
 
-            print("❌ Datos incompletos")
+                print("❌ Datos incompletos")
 
-            continue
+                continue
 
-        numero_actual = lineas[0]
+            numero_actual = lineas[0]
 
-        fecha_radicacion = lineas[1]
+            fecha_radicacion = lineas[1]
 
-        fecha_actuacion = lineas[2]
+            fecha_actuacion = lineas[2]
 
-        juzgado = lineas[3]
+            juzgado = lineas[3]
 
-        demandante = lineas[4]
+            demandante = lineas[4]
 
-        demandado = lineas[5]
+            demandado = lineas[5]
+        
+            texto_hash = f"""
+            {fecha_actuacion}
+            {juzgado}
+            {demandante}
+            {demandado}
+            """
 
-        # =====================================
-        # IA RESUMEN
-        # =====================================
+            nuevo_hash = hashlib.md5(
+                texto_hash.encode()
+            ).hexdigest()
 
-        resumen_ia = f"""
+            # =====================================
+            # IA RESUMEN
+            # =====================================
+
+            resumen_ia = f"""
 
 Nueva actuación detectada para el proceso
 {numero_actual}.
@@ -439,64 +458,71 @@ Demandado:
 
 """
 
-        # =====================================
-        # DETECTAR CAMBIOS
-        # =====================================
+            # =====================================
+            # DETECTAR CAMBIOS REALES
+            # =====================================
 
-        cambio_detectado = False
+            hash_anterior = row["hash_consulta"]
 
-        if fecha_guardada is None:
+            cambio_detectado = False
 
-            cambio_detectado = True
+            if hash_anterior != nuevo_hash:
+                cambio_detectado = True
 
-        elif str(fecha_guardada) != str(fecha_actuacion):
+            # =====================================
+            # ACTUALIZAR PROCESO
+            # =====================================
 
-            cambio_detectado = True
+            estado_proceso = "SIN CAMBIOS"
 
-        # =====================================
-        # ACTUALIZAR PROCESO
-        # =====================================
+            if cambio_detectado:
+                estado_proceso = "NUEVA ACTUACION"
 
-        cursor.execute("""
 
-        UPDATE procesos
+            cursor.execute("""
 
-        SET
+            UPDATE procesos
 
-            fecha_actuacion = %s,
-            juzgado = %s,
-            demandante = %s,
-            demandado = %s,
-            resumen_ia = %s,
-            estado = 'ACTUALIZADO',
-            ultima_revision = NOW()
+            SET
 
-        WHERE id = %s
+                fecha_actuacion = %s,
+                juzgado = %s,
+                demandante = %s,
+                demandado = %s,
+                resumen_ia = %s,
+                hash_consulta = %s,           
+                estado = %s,
+                ultima_revision = NOW()
 
-        """, (
+            WHERE id = %s
 
-            fecha_actuacion,
-            juzgado,
-            demandante,
-            demandado,
-            resumen_ia,
-            proceso_id
+            """, (
 
-        ))
+                fecha_actuacion,
+                juzgado,
+                demandante,
+                demandado,
+                resumen_ia,
+                nuevo_hash,
+                estado_proceso,
+                proceso_id
 
-        conn.commit()
+            ))
 
-        print("✅ Proceso actualizado")
+            conn.commit()
 
-        # =====================================
-        # ENVIAR ALERTAS
-        # =====================================
+            print("✅ Proceso actualizado")
 
-        if cambio_detectado:
+            
+            # =====================================
+            # ENVIAR ALERTAS
+            # =====================================
 
-            print("🚨 CAMBIO DETECTADO")
+            if cambio_detectado and plan != "FREE":
 
-            mensaje = f"""
+                print("🚨 CAMBIO DETECTADO")
+
+                mensaje = f"""
 
 🚨 Nexus Legal AI
 
@@ -513,101 +539,114 @@ Ingrese al dashboard para revisar detalles.
 
 """
 
-            # =================================
-            # WHATSAPP
-            # =================================
+                # =================================
+                # WHATSAPP
+                # =================================
 
-            try:
+                try:
 
-                twilio_client.messages.create(
+                    twilio_client.messages.create(
 
-                    from_='whatsapp:+14155238886',
+                        from_='whatsapp:+14155238886',
 
-                    body=mensaje,
+                        body=mensaje,
 
-                    to=f'whatsapp:+{whatsapp}'
+                        to=f'whatsapp:+{whatsapp}'
 
-                )
+                    )
 
-                print("📲 WhatsApp enviado")
+                    print("📲 WhatsApp enviado")
 
-            except Exception as e:
+                except Exception as e:
 
-                print("❌ Error WhatsApp:", e)
+                    print("❌ Error WhatsApp:", e)
 
-            # =================================
-            # EMAIL
-            # =================================
+                # =================================
+                # EMAIL
+                # =================================
 
-            try:
+                try:
 
-                send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+                    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
 
-                    to=[{
-                        "email": email,
-                        "name": cliente
-                    }],
+                        to=[{
+                            "email": email,
+                            "name": cliente
+                        }],
 
-                    sender={
-                        "email": "nexusautomata.digital@gmail.com",
-                        "name": "Nexus Legal AI"
-                    },
+                        sender={
+                            "email": "nexusautomata.digital@gmail.com",
+                            "name": "Nexus Legal AI"
+                        },
 
-                    subject="🚨 Nueva actuación judicial",
+                        subject="🚨 Nueva actuación judicial",
 
-                    html_content=f"""
+                        html_content=f"""
 
-                    <h2>🚨 Nexus Legal AI</h2>
+                        <h2>🚨 Nexus Legal AI</h2>
 
-                    <p><b>Proceso:</b> {numero_actual}</p>
+                        <p><b>Proceso:</b> {numero_actual}</p>
 
-                    <p><b>Fecha actuación:</b> {fecha_actuacion}</p>
+                        <p><b>Fecha actuación:</b> {fecha_actuacion}</p>
 
-                    <p><b>Juzgado:</b> {juzgado}</p>
+                        <p><b>Juzgado:</b> {juzgado}</p>
 
-                    <p>Ingrese al dashboard para revisar.</p>
+                        <p>Ingrese al dashboard para revisar.</p>
 
-                    """
+                        """
 
-                )
+                    )
 
-                api_instance.send_transac_email(
-                    send_smtp_email
-                )
+                    api_instance.send_transac_email(
+                        send_smtp_email
+                    )
 
-                print("📧 Email enviado")
+                    print("📧 Email enviado")
 
-            except Exception as e:
+                except Exception as e:
 
-                print("❌ Error Email:", e)
+                    print("❌ Error Email:", e)
 
-        else:
+            else:
 
-            print("✅ Sin cambios")
+                print("✅ Sin cambios")
 
-    except Exception as e:
+            break
 
-        conn.rollback()
+        except Exception as e:
 
-        print(f"❌ Error proceso {numero_proceso}")
+            driver.save_screenshot(
+                f"error_{proceso_id}.png"
+            )
 
-        print(e)
+            conn.rollback()
 
-        cursor.execute("""
+            print(f"❌ Error proceso {numero_proceso}")
 
-        UPDATE procesos
+            print(e)
 
-        SET estado = 'ERROR'
+            print(f"🔁 Reintentando ({intento+1}/3)...")
 
-        WHERE id = %s
+            time.sleep(5)
 
-        """, (
+            if intento < 2:
+                continue
 
-            proceso_id,
+            cursor.execute("""
 
-        ))
+            UPDATE procesos
 
-        conn.commit()
+            SET estado = 'ERROR'
+
+            WHERE id = %s
+
+            """, (
+
+                proceso_id,
+
+            ))
+
+            conn.commit()
 
 # =========================================
 # FINALIZAR
