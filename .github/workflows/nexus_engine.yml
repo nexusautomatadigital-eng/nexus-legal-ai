@@ -1,0 +1,48 @@
+name: Nexus Engine 24/7
+
+on:
+
+  schedule:
+    - cron: '0 * * * *'
+
+  workflow_dispatch:
+
+jobs:
+
+  run-engine:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Chrome
+      uses: browser-actions/setup-chrome@v1
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Nexus Engine
+      env:
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+
+        BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+
+        TWILIO_SID: ${{ secrets.TWILIO_SID }}
+        TWILIO_TOKEN: ${{ secrets.TWILIO_TOKEN }}
+
+      run: |
+        python multi_scraping.py
