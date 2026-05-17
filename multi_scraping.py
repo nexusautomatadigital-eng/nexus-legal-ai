@@ -193,7 +193,9 @@ for _, row in df_procesos.iterrows():
 
     email = row["email"]
 
-    whatsapp = str(row["whatsapp"])
+    whatsapp = ''.join(
+        filter(str.isdigit, str(row["whatsapp"]))
+    )
 
     plan = row["plan"]
 
@@ -202,6 +204,11 @@ for _, row in df_procesos.iterrows():
     fecha_guardada = row["fecha_actuacion"]
 
     hash_anterior = row["hash_consulta"]
+
+    primer_escaneo = False
+
+    if hash_anterior is None:
+        primer_escaneo = True
 
     print(f"\n🔎 Consultando: {cliente}")
 
@@ -492,6 +499,7 @@ Demandado:
                 resumen_ia = %s,
                 hash_consulta = %s,           
                 estado = %s,
+                fecha_consulta = NOW(),           
                 ultima_revision = NOW()
 
             WHERE id = %s
@@ -518,7 +526,9 @@ Demandado:
             # ENVIAR ALERTAS
             # =====================================
 
-            if cambio_detectado and plan != "FREE":
+            if cambio_detectado and (
+                plan != "FREE" or primer_escaneo
+            ):
 
                 print("🚨 CAMBIO DETECTADO")
 
@@ -607,7 +617,7 @@ Ingrese al dashboard para revisar detalles.
 
                     print("❌ Error Email:", e)
 
-            else:
+            if not cambio_detectado:
 
                 print("✅ Sin cambios")
 
