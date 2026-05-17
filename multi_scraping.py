@@ -35,23 +35,29 @@ load_dotenv()
 print("\n🚀 INICIANDO NEXUS ENGINE\n")
 
 # =========================================
-# POSTGRESQL
+# VARIABLES ENTORNO DB
 # =========================================
 
+DB_HOST = os.getenv("DB_HOST")
+
+DB_NAME = os.getenv("DB_NAME")
+
+DB_USER = os.getenv("DB_USER")
+
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+DB_PORT = os.getenv("DB_PORT")
+
+# =========================================
+# POSTGRESQL
+# =========================================
 conn = psycopg2.connect(
-
-    host=os.getenv("DB_HOST"),
-
-    database=os.getenv("DB_NAME"),
-
-    user=os.getenv("DB_USER"),
-
-    password=os.getenv("DB_PASSWORD"),
-
-    port=os.getenv("DB_PORT"),
-
+    host=DB_HOST,
+    database=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    port=DB_PORT,
     sslmode="require"
-
 )
 
 cursor = conn.cursor()
