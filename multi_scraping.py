@@ -213,7 +213,7 @@ for _, row in df_procesos.iterrows():
 
     primer_escaneo = False
 
-    if hash_anterior is None:
+    if pd.isna(hash_anterior):
         primer_escaneo = True
 
     print(f"\n🔎 Consultando: {cliente}")
@@ -474,8 +474,6 @@ Demandado:
             # =====================================
             # DETECTAR CAMBIOS REALES
             # =====================================
-
-            hash_anterior = row["hash_consulta"]
 
             cambio_detectado = False
 
