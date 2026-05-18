@@ -213,10 +213,6 @@ for _, row in df_procesos.iterrows():
 
     primer_escaneo = False
 
-    print("DEBUG PLAN:", plan)
-    print("DEBUG PRIMER:", primer_escaneo)
-    print("DEBUG CAMBIO:", cambio_detectado)
-
     if pd.isna(hash_anterior):
         primer_escaneo = True
 
@@ -490,6 +486,11 @@ Demandado:
             elif str(hash_anterior) != str(nuevo_hash):
 
                 cambio_detectado = True
+
+            print("DEBUG PLAN:", plan)
+            print("DEBUG PRIMER:", primer_escaneo)
+            print("DEBUG CAMBIO:", cambio_detectado)   
+            
 
             # =====================================
             # ACTUALIZAR PROCESO
