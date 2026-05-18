@@ -479,7 +479,14 @@ Demandado:
 
             cambio_detectado = False
 
-            if hash_anterior != nuevo_hash:
+            # PRIMER ESCANEO
+            if pd.isna(hash_anterior):
+
+                cambio_detectado = True
+
+            # CAMBIO REAL
+            elif str(hash_anterior) != str(nuevo_hash):
+
                 cambio_detectado = True
 
             # =====================================
