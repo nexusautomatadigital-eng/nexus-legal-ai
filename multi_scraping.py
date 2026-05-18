@@ -203,7 +203,7 @@ for _, row in df_procesos.iterrows():
         filter(str.isdigit, str(row["whatsapp"]))
     )
 
-    plan = row["plan"]
+    plan = str(row["plan"]).upper()
 
     numero_proceso = row["numero_proceso"]
 
@@ -212,6 +212,10 @@ for _, row in df_procesos.iterrows():
     hash_anterior = row["hash_consulta"]
 
     primer_escaneo = False
+
+    print("DEBUG PLAN:", plan)
+    print("DEBUG PRIMER:", primer_escaneo)
+    print("DEBUG CAMBIO:", cambio_detectado)
 
     if pd.isna(hash_anterior):
         primer_escaneo = True
