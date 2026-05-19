@@ -4,6 +4,7 @@ import pandas as pd
 import psycopg2
 import hashlib
 from dotenv import load_dotenv
+from openai import OpenAI
 
 
 from twilio.rest import Client
@@ -47,6 +48,16 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 DB_PORT = os.getenv("DB_PORT")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# =========================================
+# OPENAI CLIENT
+# =========================================
+
+client = OpenAI(
+    api_key=OPENAI_API_KEY
+)
 
 # =========================================
 # POSTGRESQL
@@ -449,27 +460,81 @@ for _, row in df_procesos.iterrows():
             ).hexdigest()
 
             # =====================================
-            # IA RESUMEN
+            # IA RESUMEN OPENAI
             # =====================================
 
-            resumen_ia = f"""
+            try:
 
-Nueva actuación detectada para el proceso
-{numero_actual}.
+                respuesta_ai = client.chat.completions.create(
 
-Juzgado:
-{juzgado}
+                    model="gpt-4.1-mini",
 
-Demandante:
-{demandante}
+                    messages=[
 
-Demandado:
-{demandado}
+                        {
+                            "role": "system",
 
-Última actuación:
-{fecha_actuacion}
+                            "content": """
 
-"""
+                            Eres un asistente jurídico colombiano.
+
+                            Analiza actuaciones judiciales y explica:
+
+                            - qué ocurrió
+                            - qué significa
+                            - qué puede pasar después
+
+                            Responde de forma clara y profesional.
+                            """
+
+                        },
+
+                        {
+                            "role": "user",
+
+                            "content": f"""
+
+                            Analiza este proceso judicial:
+
+                            Número proceso:
+                            {numero_actual}
+
+                            Juzgado:
+                            {juzgado}
+
+                            Demandante:
+                            {demandante}
+
+                            Demandado:
+                            {demandado}
+
+                            Última actuación:
+                            {fecha_actuacion}
+
+                            """
+                        }
+
+                    ],
+
+                    temperature=0.3
+
+                )
+
+                resumen_ia = respuesta_ai.choices[0].message.content
+
+            except Exception as e:
+
+                print("❌ Error OpenAI:", e)
+
+                resumen_ia = f"""
+
+                Nueva actuación detectada para el proceso
+                {numero_actual}.
+
+                Última actuación:
+                {fecha_actuacion}
+
+                """
 
             # =====================================
             # DETECTAR CAMBIOS REALES
