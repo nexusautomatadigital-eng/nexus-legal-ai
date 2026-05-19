@@ -3,6 +3,7 @@ import pandas as pd
 import psycopg2
 import bcrypt
 import time
+import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import streamlit.components.v1 as components
@@ -664,6 +665,41 @@ with st.form(
                     ))
 
                     conn.commit()
+
+                    # ======================================
+                    # DISPARAR NEXUS ENGINE INMEDIATO
+                    # ======================================
+
+                    try:
+
+                        github_token = st.secrets["GITHUB_TOKEN"]
+
+                        github_user = st.secrets["GITHUB_USER"]
+
+                        github_repo = st.secrets["GITHUB_REPO"]
+
+                        url = f"https://api.github.com/repos/{github_user}/{github_repo}/actions/workflows/nexus_engine.yml/dispatches"
+
+                        headers = {
+                            "Authorization": f"Bearer {github_token}",
+                            "Accept": "application/vnd.github+json"
+                        }
+
+                        data = {
+                            "ref": "main"
+                        }
+
+                        response = requests.post(
+                            url,
+                            headers=headers,
+                            json=data
+                        )
+
+                        print("GitHub Status:", response.status_code)
+
+                    except Exception as e:
+
+                        st.error(f"Error GitHub Actions: {e}")
 
                     st.success(
                         "✅ Proceso agregado correctamente"
