@@ -1,7 +1,7 @@
 import streamlit as st
 import psycopg2
 import pandas as pd
-import os
+
 
 # ==========================================
 # CONFIG
@@ -16,15 +16,33 @@ st.set_page_config(
 # DB
 # ==========================================
 
-conn = psycopg2.connect(
+# =========================================
+# CONEXIÓN SUPABASE
+# =========================================
 
-    host=os.getenv("DB_HOST"),
-    database=os.getenv("DB_NAME"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    port=os.getenv("DB_PORT")
+DB_HOST = st.secrets["DB_HOST"]
+DB_NAME = st.secrets["DB_NAME"]
+DB_USER = st.secrets["DB_USER"]
+DB_PASSWORD = st.secrets["DB_PASSWORD"]
+DB_PORT = st.secrets["DB_PORT"]
 
-)
+try:
+
+    conn = psycopg2.connect(
+        host=DB_HOST,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        port=DB_PORT,
+        sslmode="require"
+    )
+
+    print("✅ CONEXIÓN EXITOSA")
+
+except Exception as e:
+
+    st.error(f"ERROR CONEXIÓN: {e}")
+    st.stop()
 
 # ==========================================
 # LOGIN
@@ -37,18 +55,22 @@ password = st.text_input("Password", type="password")
 
 if st.button("Ingresar"):
 
-    query = f"""
+    query = """
 
     SELECT *
 
     FROM admins
 
-    WHERE usuario = '{usuario}'
-    AND password = '{password}'
+    WHERE usuario = %s
+    AND password = %s
 
     """
 
-    df_admin = pd.read_sql(query, conn)
+    df_admin = pd.read_sql(
+        query,
+        conn,
+        params=(usuario, password)
+    )
 
     if len(df_admin) > 0:
 
