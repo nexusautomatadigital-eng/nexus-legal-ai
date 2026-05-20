@@ -134,7 +134,7 @@ with col1:
 
     st.link_button(
         "🚀 Probar Gratis",
-        "https://nexus-legal-ai.streamlit.app/"
+        "https://nexus-legal-ai-fnblthpbbqn48bw2u9y9yh.streamlit.app/"
     )
 
 with col2:
