@@ -1,109 +1,154 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
 import psycopg2
 import os
 
 app = FastAPI()
 
-# ==========================================
-# CONEXION SUPABASE
-# ==========================================
+# =========================================
+# CONEXIÓN DB
+# =========================================
 
 conn = psycopg2.connect(
+
     host=os.getenv("DB_HOST"),
     database=os.getenv("DB_NAME"),
     user=os.getenv("DB_USER"),
     password=os.getenv("DB_PASSWORD"),
     port=os.getenv("DB_PORT")
+
 )
 
 cursor = conn.cursor()
 
-# ==========================================
+# =========================================
+# HOME
+# =========================================
+
+@app.get("/")
+def home():
+
+    return {
+        "status": "NEXUS WOMPI ONLINE"
+    }
+
+# =========================================
 # WEBHOOK WOMPI
-# ==========================================
+# =========================================
 
-@app.post("/webhook-wompi")
-
-async def webhook_wompi(request: Request):
+@app.post("/webhook")
+async def webhook(request: Request):
 
     data = await request.json()
 
-    print("📩 WEBHOOK RECIBIDO")
-
+    print("WEBHOOK WOMPI:")
     print(data)
 
     try:
 
         evento = data["event"]
 
-        transaccion = data["data"]["transaction"]
+        if evento == "transaction.updated":
 
-        estado = transaccion["status"]
+            transaccion = data["data"]["transaction"]
 
-        email_cliente = transaccion["customer_email"]
+            estado = transaccion["status"]
 
-        monto = transaccion["amount_in_cents"]
+            referencia = transaccion["reference"]
 
-        referencia = transaccion["reference"]
+            monto = transaccion["amount_in_cents"]
 
-        # ==========================================
-        # VALIDAR PAGO EXITOSO
-        # ==========================================
+            email = transaccion["customer_email"]
 
-        if estado == "APPROVED":
+            # =====================================
+            # VALIDAR APROBADO
+            # =====================================
 
-            # ==========================================
-            # DEFINIR PLAN
-            # ==========================================
+            if estado == "APPROVED":
 
-            plan = "FREE"
+                # =====================================
+                # DETECTAR PLAN
+                # =====================================
 
-            if monto == 2990000:
-                plan = "BASICO"
+                plan = "FREE"
 
-            elif monto == 5990000:
-                plan = "PREMIUM"
+                if monto == 2990000:
+                    plan = "BASICO"
 
-            elif monto == 9990000:
-                plan = "GOLD"
+                elif monto == 5990000:
+                    plan = "PREMIUM"
 
-            # ==========================================
-            # ACTUALIZAR USUARIO
-            # ==========================================
+                elif monto == 9990000:
+                    plan = "GOLD"
 
-            cursor.execute("""
+                # =====================================
+                # GUARDAR SUSCRIPCIÓN
+                # =====================================
 
-            UPDATE usuarios
+                cursor.execute("""
 
-            SET plan = %s
+                INSERT INTO suscripciones (
 
-            WHERE email = %s
+                    email,
+                    referencia,
+                    transaccion_id,
+                    plan,
+                    estado,
+                    monto
 
-            """, (
+                )
 
-                plan,
-                email_cliente
+                VALUES (%s,%s,%s,%s,%s,%s)
 
-            ))
+                """, (
 
-            conn.commit()
+                    email,
+                    referencia,
+                    transaccion["id"],
+                    plan,
+                    estado,
+                    monto
 
-            print("✅ PLAN ACTUALIZADO")
+                ))
 
-        return {
+                conn.commit()
 
+                # =====================================
+                # ACTUALIZAR USUARIO
+                # =====================================
+
+                cursor.execute("""
+
+                UPDATE clientes
+
+                SET
+
+                    plan = %s,
+                    estado_pago = 'ACTIVO',
+                    fecha_pago = NOW()
+
+                WHERE email = %s
+
+                """, (
+
+                    plan,
+                    email
+
+                ))
+
+                conn.commit()
+
+                print("PLAN ACTUALIZADO")
+
+        return JSONResponse({
             "status": "ok"
-
-        }
+        })
 
     except Exception as e:
 
-        print("❌ ERROR WEBHOOK")
+        print("ERROR WEBHOOK:", e)
 
-        print(e)
-
-        return {
-
-            "status": "error"
-
-        }
+        return JSONResponse({
+            "error": str(e)
+        })
