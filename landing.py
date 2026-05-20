@@ -268,10 +268,11 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
 
-    st.button(
+    st.link_button(
         "💳 Suscribirme",
-        key="basico"
+        "LINK_WOMPI_BASICO"
     )
+    
 
 # ==========================================
 # PREMIUM
@@ -299,9 +300,9 @@ with col3:
     </div>
     """, unsafe_allow_html=True)
 
-    st.button(
+    st.link_button(
         "💳 Suscribirme",
-        key="premium"
+        "LINK_WOMPI_PREMIUM"
     )
 
 # ==========================================
@@ -330,9 +331,9 @@ with col4:
     </div>
     """, unsafe_allow_html=True)
 
-    st.button(
+    st.link_button(
         "💳 Suscribirme",
-        key="gold"
+        "LINK_WOMPI_GOLD"
     )
 
 # ==========================================
