@@ -1,5 +1,13 @@
 import streamlit as st
 
+# =========================================
+# WOMPI LINKS
+# =========================================
+
+WOMPI_BASICO = "https://checkout.wompi.co/l/MB3i06"
+WOMPI_PREMIUM = "https://checkout.wompi.co/l/gfCbqa"
+WOMPI_GOLD = "https://checkout.wompi.co/l/F8UqPA"
+
 # ==========================================
 # CONFIG
 # ==========================================
@@ -270,7 +278,7 @@ with col2:
 
     st.link_button(
         "💳 Suscribirme",
-        "LINK_WOMPI_BASICO"
+        WOMPI_BASICO
     )
     
 
@@ -302,7 +310,7 @@ with col3:
 
     st.link_button(
         "💳 Suscribirme",
-        "LINK_WOMPI_PREMIUM"
+        WOMPI_PREMIUM
     )
 
 # ==========================================
@@ -333,7 +341,7 @@ with col4:
 
     st.link_button(
         "💳 Suscribirme",
-        "LINK_WOMPI_GOLD"
+        WOMPI_GOLD
     )
 
 # ==========================================
