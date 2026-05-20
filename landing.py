@@ -1,215 +1,349 @@
 import streamlit as st
 
+# ============================================
+# CONFIG
+# ============================================
+
 st.set_page_config(
     page_title="Nexus Legal AI",
     layout="wide"
 )
 
-# ==========================================
-# CSS PREMIUM
-# ==========================================
+# ============================================
+# CSS GLOBAL
+# ============================================
 
 st.markdown("""
-
 <style>
 
-.main {
-    background-color: #0f172a;
+html, body, [class*="css"] {
+    background-color: #f5f7fb;
+    font-family: Arial;
+}
+
+/* HERO */
+.hero {
+    background: linear-gradient(135deg,#0f172a,#111827);
+    padding: 60px;
+    border-radius: 20px;
+    color: white;
 }
 
 .hero-title {
-    font-size: 60px;
+    font-size: 52px;
     font-weight: bold;
-    color: white;
 }
 
-.hero-subtitle {
-    font-size: 24px;
-    color: #cbd5e1;
+.hero-sub {
+    font-size: 22px;
+    color: #d1d5db;
 }
 
+/* CARDS */
 .card {
-    background: #111827;
+    background: #0f172a;
     padding: 30px;
     border-radius: 20px;
     color: white;
-    box-shadow: 0px 0px 20px rgba(0,0,0,0.3);
+    min-height: 420px;
+    box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
 }
 
-.plan-card {
-    background: #1e293b;
-    padding: 25px;
-    border-radius: 20px;
-    color: white;
-    text-align: center;
-}
-
-.big-button {
-    background: #22c55e;
-    color: white;
-    padding: 15px;
-    border-radius: 15px;
-    text-align: center;
-    font-size: 20px;
+.plan-title {
+    font-size: 34px;
     font-weight: bold;
 }
 
-</style>
+.price {
+    font-size: 48px;
+    font-weight: bold;
+    color: #22d3ee;
+}
 
+.feature {
+    margin-top: 15px;
+    font-size: 18px;
+}
+
+.center {
+    text-align:center;
+}
+
+.section-title {
+    font-size: 38px;
+    font-weight: bold;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.footer {
+    text-align:center;
+    color: gray;
+    margin-top: 50px;
+}
+
+</style>
 """, unsafe_allow_html=True)
 
-# ==========================================
+# ============================================
 # HERO
-# ==========================================
-
-col1, col2 = st.columns([2,1])
-
-with col1:
-
-    st.markdown("""
-    <div class="hero-title">
-    ⚖️ Nexus Legal AI
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="hero-subtitle">
-    Automatización judicial inteligente con IA.
-    <br><br>
-    Monitorea procesos judiciales automáticamente,
-    recibe alertas en tiempo real y análisis jurídico con inteligencia artificial.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-
-    st.link_button(
-        "🚀 Probar Gratis",
-        "https://nexus-legal-ai.streamlit.app/"
-    )
-
-with col2:
-
-    st.image(
-        "https://images.unsplash.com/photo-1589829545856-d10d557cf95f",
-        use_container_width=True
-    )
-
-# ==========================================
-# BENEFICIOS
-# ==========================================
-
-st.write("")
-st.write("")
-st.subheader("🔥 ¿Qué hace Nexus?")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-
-    st.markdown("""
-    <div class="card">
-    <h3>⚖️ Monitoreo Judicial</h3>
-
-    Consulta automática de procesos judiciales 24/7.
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-
-    st.markdown("""
-    <div class="card">
-    <h3>🤖 Inteligencia Artificial</h3>
-
-    Resúmenes jurídicos automáticos con IA.
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-
-    st.markdown("""
-    <div class="card">
-    <h3>📲 Alertas Inteligentes</h3>
-
-    WhatsApp y correo automático ante cambios judiciales.
-    </div>
-    """, unsafe_allow_html=True)
-
-# ==========================================
-# PLANES
-# ==========================================
-
-st.write("")
-st.write("")
-st.subheader("💎 Planes")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-
-    st.markdown("""
-    <div class="plan-card">
-    <h2>FREE</h2>
-
-    1 proceso judicial
-
-    Alertas básicas
-
-    Email + WhatsApp
-
-    <h1>$0</h1>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-
-    st.markdown("""
-    <div class="plan-card">
-    <h2>BÁSICO</h2>
-
-    5 procesos
-
-    IA Jurídica
-
-    Prioridad media
-
-    <h1>$39.000</h1>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-
-    st.markdown("""
-    <div class="plan-card">
-    <h2>PREMIUM</h2>
-
-    Procesos ilimitados
-
-    IA avanzada
-
-    Alertas prioritarias
-
-    <h1>$99.000</h1>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ==========================================
-# CTA FINAL
-# ==========================================
-
-st.write("")
-st.write("")
-st.write("")
+# ============================================
 
 st.markdown("""
-<div class="big-button">
-🚀 Empieza hoy con Nexus Legal AI
+<div class="hero">
+
+<div class="hero-title">
+⚖️ Nexus Legal AI
+</div>
+
+<br>
+
+<div class="hero-sub">
+Automatización judicial con Inteligencia Artificial
+</div>
+
+<br>
+
+<div style="font-size:20px;">
+Monitorea procesos judiciales automáticamente,
+recibe alertas en tiempo real y análisis jurídico con IA.
+</div>
+
 </div>
 """, unsafe_allow_html=True)
 
-st.write("")
+# ============================================
+# BENEFICIOS
+# ============================================
 
-st.link_button(
-    "Ingresar al Dashboard",
-    "https://nexus-legal-ai.streamlit.app/"
+st.markdown("""
+<div class="section-title">
+🔥 ¿Qué hace Nexus?
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+
+    st.markdown("""
+    <div class="card">
+
+    <h2>⚖️ Monitoreo Judicial</h2>
+
+    <br>
+
+    <p class="feature">
+    Consulta automática de procesos judiciales 24/7.
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+
+    st.markdown("""
+    <div class="card">
+
+    <h2>🧠 Inteligencia Artificial</h2>
+
+    <br>
+
+    <p class="feature">
+    Resúmenes jurídicos automáticos con IA.
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+
+    st.markdown("""
+    <div class="card">
+
+    <h2>📲 Alertas Inteligentes</h2>
+
+    <br>
+
+    <p class="feature">
+    WhatsApp y correo automático ante cambios judiciales.
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+# ============================================
+# PLANES
+# ============================================
+
+st.markdown("""
+<div class="section-title">
+💎 Planes
+</div>
+""", unsafe_allow_html=True)
+
+c1, c2, c3, c4 = st.columns(4)
+
+# ============================================
+# FREE
+# ============================================
+
+with c1:
+
+    st.markdown("""
+    <div class="card">
+
+    <div class="plan-title" style="color:#4ade80;">
+    🟢 FREE
+    </div>
+
+    <br>
+
+    <div class="price">
+    GRATIS
+    </div>
+
+    <br>
+
+    <div class="feature">✅ 1 proceso judicial</div>
+    <div class="feature">✅ Dashboard judicial</div>
+    <div class="feature">✅ IA básica</div>
+    <div class="feature">✅ Prueba gratuita</div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.button(
+        "🚀 Probar Gratis",
+        key="free"
+    )
+
+# ============================================
+# BASICO
+# ============================================
+
+with c2:
+
+    st.markdown("""
+    <div class="card">
+
+    <div class="plan-title" style="color:#60a5fa;">
+    🔵 BASICO
+    </div>
+
+    <br>
+
+    <div class="price">
+    $29.900
+    </div>
+
+    <br>
+
+    <div class="feature">✅ Hasta 5 procesos</div>
+    <div class="feature">✅ Historial completo</div>
+    <div class="feature">✅ Alertas email</div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.button(
+        "💳 Suscribirme",
+        key="basico"
+    )
+
+# ============================================
+# PREMIUM
+# ============================================
+
+with c3:
+
+    st.markdown("""
+    <div class="card">
+
+    <div class="plan-title" style="color:#facc15;">
+    🟡 PREMIUM
+    </div>
+
+    <br>
+
+    <div class="price">
+    $59.900
+    </div>
+
+    <br>
+
+    <div class="feature">✅ Hasta 20 procesos</div>
+    <div class="feature">✅ WhatsApp automático</div>
+    <div class="feature">✅ IA avanzada</div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.button(
+        "💳 Suscribirme",
+        key="premium"
+    )
+
+# ============================================
+# GOLD
+# ============================================
+
+with c4:
+
+    st.markdown("""
+    <div class="card">
+
+    <div class="plan-title" style="color:#c084fc;">
+    🟣 GOLD
+    </div>
+
+    <br>
+
+    <div class="price">
+    $99.900
+    </div>
+
+    <br>
+
+    <div class="feature">✅ Hasta 100 procesos</div>
+    <div class="feature">✅ IA Jurídica</div>
+    <div class="feature">✅ Prioridad máxima</div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.button(
+        "💳 Suscribirme",
+        key="gold"
+    )
+
+# ============================================
+# CTA FINAL
+# ============================================
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+st.success(
+    "🚀 Empieza hoy con Nexus Legal AI"
 )
+
+# ============================================
+# LOGIN
+# ============================================
+
+st.page_link(
+    "dashboard.py",
+    label="Ingresar al Dashboard"
+)
+
+# ============================================
+# FOOTER
+# ============================================
+
+st.markdown("""
+<div class="footer">
+
+Nexus Legal AI © 2026
+
+</div>
+""", unsafe_allow_html=True)
