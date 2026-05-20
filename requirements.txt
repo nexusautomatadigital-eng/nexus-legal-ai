@@ -8,3 +8,5 @@ twilio
 sib-api-v3-sdk
 bcrypt
 openai
+fastapi
+uvicorn
