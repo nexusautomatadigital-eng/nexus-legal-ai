@@ -92,7 +92,63 @@ if st.button("Ingresar"):
 
         st.subheader("Clientes Nexus")
 
-        st.dataframe(df_clientes)
+        for _, row in df_clientes.iterrows():
+
+            with st.container(border=True):
+
+                col1, col2, col3 = st.columns([3,2,2])
+
+                with col1:
+
+                    st.write(f"👤 Cliente: {row['nombre']}")
+                    st.write(f"📧 {row['email']}")
+                    st.write(f"📲 {row['whatsapp']}")
+                    st.write(f"💎 Plan actual: {row['plan']}")
+
+                with col2:
+
+                    nuevo_plan = st.selectbox(
+
+                        f"Plan {row['id']}",
+                        ["FREE", "BASICO", "PREMIUM", "GOLD"]
+
+                    )
+
+                    if st.button(f"Actualizar Plan {row['id']}"):
+
+                        cursor = conn.cursor()
+
+                        cursor.execute("""
+                                       
+                        UPDATE clientes
+                                       
+                        SET plan = %s
+                                       
+                        WHERE id = %s
+
+                        """, (nuevo_plan, row["id"]))
+
+                        conn.commit()
+
+                        st.success("✅ Plan actualizado")
+
+                    with col3:
+
+                        if st.button(f"❌ Eliminar {row['id']}"):
+
+                            cursor = conn.cursor()
+
+                            cursor.execute("""
+
+                            DELETE FROM clientes
+
+                            WHERE id = %s
+
+                            """, (row["id"],))
+
+                            conn.commit()
+
+                            st.success("✅ Cliente eliminado")
 
     else:
 
