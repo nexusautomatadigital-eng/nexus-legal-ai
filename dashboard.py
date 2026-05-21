@@ -14,10 +14,23 @@ load_dotenv()
 # CONFIG
 # =========================================
 
-st.set_page_config(
+st.set_page_config(    
+    
     page_title="Nexus Legal AI",
     layout="wide"
 )
+
+# ==========================================
+# SESSION STATE
+# ==========================================
+
+if "login" not in st.session_state:
+
+    st.session_state.login = False
+
+if "usuario" not in st.session_state:
+
+    st.session_state.usuario = None
 
 # =========================================
 # CSS
@@ -133,7 +146,7 @@ LIMITES = {
     "FREE": 1,
     "BASICO": 5,
     "PREMIUM": 20,
-    "GOLD": 100
+    "GOLD": 999999
 }
 
 # =========================================
@@ -281,7 +294,7 @@ if not st.session_state.logueado:
 
         <br>
 
-        ✅ Hasta 100 procesos<br><br>
+        ✅ Procesos ilimitados<br><br>
         ✅ IA Jurídica<br><br>
         ✅ Prioridad máxima<br><br>
 
@@ -457,6 +470,9 @@ if not st.session_state.logueado:
                 st.session_state.whatsapp = resultado[5]
                 st.session_state.plan = resultado[6]
 
+                st.success("✅ Bienvenido a Nexus Legal AI")
+                time.sleep(1)
+
                 st.rerun()
 
             else:
@@ -470,6 +486,20 @@ if not st.session_state.logueado:
 # =========================================
 # DASHBOARD
 # =========================================
+
+# =========================================
+# VALIDACIÓN SEGURIDAD
+# =========================================
+
+if "logueado" not in st.session_state:
+
+    st.warning("Debe iniciar sesión")
+    st.stop()
+
+if st.session_state.logueado == False:
+
+    st.warning("Debe iniciar sesión")
+    st.stop()
 
 cliente_logueado = st.session_state.nombre
 plan_cliente = st.session_state.plan
@@ -591,8 +621,11 @@ with st.form(
 ):
 
     numero_proceso = st.text_input(
+        
         "Número proceso judicial"
     )
+
+    numero_proceso = numero_proceso.strip()
 
     agregar = st.form_submit_button(
         "Agregar Proceso"
@@ -648,11 +681,12 @@ with st.form(
                         email,
                         whatsapp,
                         plan,
-                        numero_proceso
+                        numero_proceso,
+                        estado
 
                     )
 
-                    VALUES (%s,%s,%s,%s,%s)
+                    VALUES (%s,%s,%s,%s,%s,%s)
 
                     """, (
 
@@ -660,7 +694,8 @@ with st.form(
                         email_cliente,
                         whatsapp_cliente,
                         plan_cliente,
-                        numero_proceso
+                        numero_proceso,
+                        "PENDIENTE"
 
                     ))
 
@@ -910,4 +945,4 @@ st.caption(
 # CLOSE DB
 # =========================================
 
-conn.close()
+# conn.close()
