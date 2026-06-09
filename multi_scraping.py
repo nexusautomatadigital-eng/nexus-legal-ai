@@ -51,83 +51,6 @@ DB_PORT = os.getenv("DB_PORT")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# =========================================
-# OPENAI CLIENT
-# =========================================
-
-client = OpenAI(
-    api_key=OPENAI_API_KEY
-)
-
-# =========================================
-# POSTGRESQL
-# =========================================
-conn = psycopg2.connect(
-    host=DB_HOST,
-    database=DB_NAME,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    port=DB_PORT,
-    sslmode="require"
-)
-
-cursor = conn.cursor()
-
-# =========================================
-# CREAR COLUMNAS NUEVAS
-# =========================================
-
-#cursor.execute("""
-
-#ALTER TABLE procesos
-#ADD COLUMN IF NOT EXISTS estado TEXT DEFAULT 'PENDIENTE'
-
-#""")
-
-#cursor.execute("""
-
-#ALTER TABLE procesos
-#ADD COLUMN IF NOT EXISTS resumen_ia TEXT
-
-#""")
-
-#cursor.execute("""
-
-#ALTER TABLE procesos
-#ADD COLUMN IF NOT EXISTS ultima_revision TIMESTAMP
-
-#""")
-
-#conn.commit()
-
-# =========================================
-# CONFIG BREVO
-# =========================================
-
-configuration = sib_api_v3_sdk.Configuration()
-
-configuration.api_key['api-key'] = os.getenv(
-    "BREVO_API_KEY"
-)
-
-api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
-
-    sib_api_v3_sdk.ApiClient(configuration)
-
-)
-
-# =========================================
-# CONFIG TWILIO
-# =========================================
-
-account_sid = os.getenv("TWILIO_SID")
-
-auth_token = os.getenv("TWILIO_TOKEN")
-
-twilio_client = Client(
-    account_sid,
-    auth_token
-)
 
 # =========================================
 # CHROME OPTIONS
@@ -468,6 +391,22 @@ for _, row in df_procesos.iterrows():
             demandante = lineas[4]
 
             demandado = lineas[5]
+
+            cursor.execute("""
+
+            UPDATE procesos
+
+            SET fuente_rama = TRUE
+
+            WHERE id = %s
+
+            """, (
+
+                proceso_id,
+
+            ))
+
+            conn.commit()
         
             texto_hash = f"""
             {fecha_actuacion}
