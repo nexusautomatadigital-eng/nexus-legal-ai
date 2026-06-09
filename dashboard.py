@@ -7,8 +7,28 @@ import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import streamlit.components.v1 as components
+from services.db import (
+    get_connection,
+    get_vigilancias_cliente
+)
+
+from services.db import (
+
+    get_connection,
+    get_vigilancias_cliente,
+
+    get_total_vigilancias,
+    get_total_alertas,
+    get_total_actuaciones,
+    get_total_documentos
+
+)
+
 
 load_dotenv()
+
+print("\n🔥 SECRETS DISPONIBLES")
+print(st.secrets.keys())
 
 # =========================================
 # CONFIG
@@ -28,10 +48,15 @@ if "login" not in st.session_state:
 
     st.session_state.login = False
 
+if "cliente_id" not in st.session_state:
+
+    st.session_state.cliente_id = None
+
 if "usuario" not in st.session_state:
 
     st.session_state.usuario = None
 
+      
 # =========================================
 # CSS
 # =========================================
@@ -85,6 +110,9 @@ st.markdown("""
 
 if "logueado" not in st.session_state:
     st.session_state.logueado = False
+
+if "primer_proceso" not in st.session_state:
+    st.session_state.primer_proceso = False
 
 if "pagina" not in st.session_state:
     st.session_state.pagina = "landing"
@@ -463,7 +491,11 @@ if not st.session_state.logueado:
             if password_correcto:
 
                 st.session_state.logueado = True
-
+                st.session_state.cliente_id = resultado[0]
+                
+                st.success(
+                    f"CLIENTE ID: {st.session_state.cliente_id}"
+                )
                 st.session_state.usuario = resultado[1]
                 st.session_state.nombre = resultado[3]
                 st.session_state.email = resultado[4]
@@ -482,6 +514,52 @@ if not st.session_state.logueado:
                 )
 
     st.stop()
+
+# =========================================
+# HERO NEXUS
+# =========================================
+
+st.markdown("""
+
+<div style="
+background:linear-gradient(135deg,#0f172a,#1e293b);
+padding:25px;
+border-radius:20px;
+margin-bottom:25px;
+color:white;
+">
+
+<h1 style="margin:0;">
+⚖️ Nexus Legal AI
+</h1>
+
+<h3 style="color:#93c5fd;">
+Centro de Vigilancia Procesal Inteligente
+</h3>
+
+<p style="font-size:18px;">
+
+Monitoreamos automáticamente:
+<br><br>
+✅ Rama Judicial
+<br>
+✅ SAMAI
+<br>
+✅ Publicaciones Procesales
+<br><br>
+🚨 Detectamos cambios
+
+📄 Seguimos actuaciones
+
+📎 Monitoreamos documentos
+
+📲 Notificamos por Email y WhatsApp
+
+</p>
+
+</div>
+
+""", unsafe_allow_html=True)
 
 # =========================================
 # DASHBOARD
@@ -610,6 +688,34 @@ st.subheader(
 )
 
 # =========================================
+# BIENVENIDA FREE
+# =========================================
+
+if total_procesos == 0:
+
+    st.info("""
+
+    ⚖️ Bienvenido a Nexus Legal AI
+
+    Agrega tu primer proceso judicial.
+
+    Nexus buscará automáticamente en:
+
+    ✓ Rama Judicial
+
+    ✓ Publicaciones Procesales
+
+    ✓ SAMAI
+
+    ✓ Fuentes futuras
+
+    Luego activará la vigilancia automática.
+
+    """)
+
+
+    
+# =========================================
 # AGREGAR PROCESO
 # =========================================
 
@@ -701,11 +807,54 @@ with st.form(
 
                     conn.commit()
 
+                    st.session_state.primer_proceso = True
+
+                    st.success("""
+
+                    ✅ Proceso recibido correctamente
+
+                    🔍 Nexus iniciará el análisis automático.
+
+                    Fuentes consultadas:
+
+                    ✓ Rama Judicial
+
+                    ✓ Publicaciones Procesales
+
+                    ✓ SAMAI
+
+                    Las alertas serán enviadas por:
+
+                    ✓ Email
+
+                    ✓ WhatsApp
+
+                    """)
+
                     # ======================================
                     # DISPARAR NEXUS ENGINE INMEDIATO
                     # ======================================
 
                     try:
+
+                        print("🚀 INICIANDO DISPATCH")
+
+                        github_token = st.secrets["GITHUB_TOKEN"]
+                        print("TOKEN OK")
+
+                        github_user = st.secrets["GITHUB_USER"]
+                        print("USER OK")
+
+                        github_repo = st.secrets["GITHUB_REPO"]
+                        print("REPO OK")
+
+                    except Exception as e:
+
+                        print("ERROR:", e)
+
+                    try:
+
+                        print("🚀 INICIANDO DISPATCH GITHUB")
 
                         github_token = st.secrets["GITHUB_TOKEN"]
 
@@ -713,34 +862,104 @@ with st.form(
 
                         github_repo = st.secrets["GITHUB_REPO"]
 
+                        print("USER:", github_user)
+
+                        print("REPO:", github_repo)
+
                         url = f"https://api.github.com/repos/{github_user}/{github_repo}/actions/workflows/nexus_engine.yml/dispatches"
 
                         headers = {
+
                             "Authorization": f"Bearer {github_token}",
+
                             "Accept": "application/vnd.github+json"
+
                         }
 
                         data = {
+
                             "ref": "main"
+
                         }
 
                         response = requests.post(
+
                             url,
+
                             headers=headers,
+
                             json=data
+
                         )
 
                         print("GitHub Status:", response.status_code)
 
+                        print("GitHub Response:", response.text)
+
                     except Exception as e:
 
-                        st.error(f"Error GitHub Actions: {e}")
+                        print("ERROR GITHUB:", e)
 
-                    st.success(
-                        "✅ Proceso agregado correctamente"
-                    )
+                        st.error(
+                            f"Error GitHub Actions: {e}"
+                        )
+                    
+                    #try:
 
-                    st.rerun()
+                        #github_token = st.secrets["GITHUB_TOKEN"]
+
+                        #github_user = st.secrets["GITHUB_USER"]
+
+                        #github_repo = st.secrets["GITHUB_REPO"]
+
+                        #url = f"https://api.github.com/repos/{github_user}/{github_repo}/actions/workflows/nexus_engine.yml/dispatches"
+
+                        #headers = {
+                            #"Authorization": f"Bearer {github_token}",
+                            #"Accept": "application/vnd.github+json"
+                        #}
+
+                        #data = {
+                            #"ref": "main"
+                        #}
+
+                        #response = requests.post(
+                            #url,
+                            #headers=headers,
+                            #json=data
+                        #)
+
+                        #print("GitHub Status:", response.status_code)
+
+                        #print("GitHub Response:", response.text)
+
+                        #if response.status_code in [200, 201, 204]:
+
+                            #st.info("""
+
+                            #🚀 Motor Nexus activado
+
+                            #El monitoreo comenzará en unos minutos.
+
+                            #""")
+
+                        #else:
+
+                            #st.warning("""
+
+                            #⚠️ El proceso fue registrado.
+
+                            #Nexus realizará la revisión en el siguiente ciclo automático.
+
+                        #""")
+
+                        #print("GitHub Status:", response.status_code)
+
+                    #except Exception as e:
+
+                        #st.error(f"Error GitHub Actions: {e}")
+
+                    #st.rerun()
 
 # =========================================
 # CONSULTAR PROCESOS
@@ -768,42 +987,156 @@ if df.empty:
 else:
 
     # =====================================
-    # METRICAS
+    # KPI NEXUS
     # =====================================
 
-    col1, col2, col3 = st.columns(3)
+    total_vigilancias = get_total_vigilancias()
+
+    total_alertas = get_total_alertas()
+
+    total_actuaciones = get_total_actuaciones()
+
+    total_documentos = get_total_documentos()
+
+    # =========================================
+    # KPI PREMIUM
+    # =========================================
+
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
 
-        st.metric(
-            "Total Procesos",
-            len(df)
-        )
+        st.markdown(f"""
+
+        <div style="
+        background:#111827;
+        padding:25px;
+        border-radius:18px;
+        text-align:center;
+        color:white;
+        ">
+
+        <h3>⚖️</h3>
+
+        <h2>{total_vigilancias}</h2>
+
+        <p>Vigilancias Activas</p>
+
+        </div>
+
+        """, unsafe_allow_html=True)
 
     with col2:
 
-        ultima_fecha = df.iloc[0]["fecha_actuacion"]
+        st.markdown(f"""
 
-        if ultima_fecha is None:
-            ultima_fecha = "Sin actualizar"
+        <div style="
+        background:#111827;
+        padding:25px;
+        border-radius:18px;
+        text-align:center;
+        color:white;
+        ">
 
-        st.metric(
-            "Última actuación",
-            str(ultima_fecha)
-        )
+        <h3>🚨</h3>
+
+        <h2>{total_alertas}</h2>
+
+        <p>Alertas Generadas</p>
+
+        </div>
+
+        """, unsafe_allow_html=True)
 
     with col3:
 
-        st.metric(
-            "Plan",
-            plan_cliente
-        )
+        st.markdown(f"""
+
+        <div style="
+        background:#111827;
+        padding:25px;
+        border-radius:18px;
+        text-align:center;
+        color:white;
+        ">
+
+        <h3>📄</h3>
+
+        <h2>{total_actuaciones}</h2>
+
+        <p>Actuaciones</p>
+
+        </div>
+
+        """, unsafe_allow_html=True)
+
+    with col4:
+
+        st.markdown(f"""
+
+        <div style="
+        background:#111827;
+        padding:25px;
+        border-radius:18px;
+        text-align:center;
+        color:white;
+        ">
+
+        <h3>📎</h3>
+
+        <h2>{total_documentos}</h2>
+
+        <p>Documentos</p>
+
+        </div>
+
+        """, unsafe_allow_html=True)
+
+
+    
+    # =====================================
+    # METRICAS
+    # =====================================
+
+    #col1, col2, col3 = st.columns(3)
+
+    #with col1:
+
+        #st.metric(
+            #"Total Procesos",
+            #len(df)
+        #)
+
+    #with col2:
+
+        #ultima_fecha = df.iloc[0]["fecha_actuacion"]
+
+        #if ultima_fecha is None:
+            #ultima_fecha = "Sin actualizar"
+
+        #st.metric(
+            #"Última actuación",
+            #Cstr(ultima_fecha)
+        #)
+
+    #with col3:
+
+        #st.metric(
+            #"Plan",
+            #plan_cliente
+        #)
 
     # =====================================
     # DASHBOARD PROCESOS PRO
     # =====================================
 
-    st.subheader("📂 Mis Procesos Judiciales")
+    st.subheader(
+        "⚖️ Centro de Vigilancia Procesal"
+    )
+
+    st.caption(
+        "Monitoreo inteligente de procesos judiciales, actuaciones, documentos y alertas."
+    )
 
     for _, row in df.iterrows():
 
@@ -861,7 +1194,7 @@ else:
         ">
 
         <h3>
-        ⚖️ Proceso Judicial
+        ⚖️ Vigilancia Procesal Activa
         </h3>
 
         <p style="
@@ -888,12 +1221,12 @@ else:
         <hr>
 
         <p style="color:#9ca3af; font-size:13px;">
-        🕒 Última revisión Nexus AI:<br>
+        🤖 Última revisión automática Nexus:
         {row["fecha_consulta"]}
         </p>
 
         <p>
-        📅 <b>Última actuación:</b><br>
+        📅 <b>Último movimiento detectado:</b>
         {fecha_actuacion}
         </p>
 
@@ -919,7 +1252,7 @@ else:
             margin-top:15px;
         ">
 
-        <b>🤖 Resumen IA</b>
+        <b>🧠 Análisis Nexus AI</b>
 
         <br><br>
 
@@ -930,6 +1263,105 @@ else:
         </div>
 
         """, height=700, scrolling=True)
+
+# =========================================
+# VIGILANCIAS V2
+# =========================================
+
+st.markdown("---")
+
+st.subheader(
+    "📌 Mis Vigilancias (V2)"
+)
+
+vigilancias = get_vigilancias_cliente(
+
+    st.session_state.cliente_id
+
+)
+
+if not vigilancias:
+
+    st.info(
+        "No existen vigilancias activas."
+    )
+
+else:
+
+    for v in vigilancias:
+
+        vigilancia_id = v[0]
+
+        estado = v[1]
+
+        numero_proceso = v[2]
+
+        fuente = v[3]
+
+        especialidad = v[4]
+
+        despacho = v[5]
+
+        ultima_actuacion = v[6]
+
+        fecha_ultima_actuacion = v[7]
+
+        ultima_revision = v[8]
+
+        # =====================================
+        # VALIDACIONES
+        # =====================================
+
+        if not ultima_actuacion:
+
+            ultima_actuacion = "Sin información"
+
+        if not fecha_ultima_actuacion:
+
+            fecha_ultima_actuacion = "Sin información"
+
+        if not ultima_revision:
+
+            ultima_revision = "Sin revisión"
+
+    
+        with st.container(border=True):
+
+            st.write(
+                f"📄 Proceso: {numero_proceso}"
+            )
+
+            st.write(
+                f"📡 Fuente: {fuente}"
+            )
+
+            st.write(
+                f"⚖️ Especialidad: {especialidad}"
+            )
+
+            st.write(
+                f"🏛️ Despacho: {despacho}"
+            )
+
+            st.write(
+                f"📅 Última actuación: {fecha_ultima_actuacion}"
+            )
+
+            st.write(
+                f"📄 Actuación: {ultima_actuacion}"
+            )
+
+            st.write(
+                f"🤖 Última revisión Nexus: {ultima_revision}"
+            )
+
+            st.write(
+                f"✅ Estado: {estado}"
+            )
+
+            st.caption(
+                vigilancia_id
+            )        
 
 # =========================================
 # FOOTER

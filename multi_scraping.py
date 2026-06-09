@@ -77,28 +77,28 @@ cursor = conn.cursor()
 # CREAR COLUMNAS NUEVAS
 # =========================================
 
-cursor.execute("""
+#cursor.execute("""
 
-ALTER TABLE procesos
-ADD COLUMN IF NOT EXISTS estado TEXT DEFAULT 'PENDIENTE'
+#ALTER TABLE procesos
+#ADD COLUMN IF NOT EXISTS estado TEXT DEFAULT 'PENDIENTE'
 
-""")
+#""")
 
-cursor.execute("""
+#cursor.execute("""
 
-ALTER TABLE procesos
-ADD COLUMN IF NOT EXISTS resumen_ia TEXT
+#ALTER TABLE procesos
+#ADD COLUMN IF NOT EXISTS resumen_ia TEXT
 
-""")
+#""")
 
-cursor.execute("""
+#cursor.execute("""
 
-ALTER TABLE procesos
-ADD COLUMN IF NOT EXISTS ultima_revision TIMESTAMP
+#ALTER TABLE procesos
+#ADD COLUMN IF NOT EXISTS ultima_revision TIMESTAMP
 
-""")
+#""")
 
-conn.commit()
+#conn.commit()
 
 # =========================================
 # CONFIG BREVO
@@ -173,9 +173,24 @@ SELECT *
 
 FROM procesos
 
+WHERE estado = 'PENDIENTE'
+
 ORDER BY id DESC
 
+LIMIT 20
+
 """
+
+
+#query = """
+
+#SELECT *
+
+#FROM procesos
+
+#ORDER BY id DESC
+
+#"""
 
 df_procesos = pd.read_sql(
     query,
@@ -183,6 +198,12 @@ df_procesos = pd.read_sql(
 )
 
 print(df_procesos)
+
+print("\n🚀 TOTAL PENDIENTES")
+print(len(df_procesos))
+
+print("\n🚀 ESTADOS")
+print(df_procesos["estado"].value_counts())
 
 # =========================================
 # VALIDAR PROCESOS
