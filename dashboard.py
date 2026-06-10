@@ -1020,9 +1020,11 @@ else:
     procesos_pendientes = len(
 
         df[
-            df["estado"] == "PENDIENTE"
+            df["estado"].isin([ 
+                "PENDIENTE",
+                "CONSULTANDO"
+            ])        
         ]
-
     )
 
     if procesos_pendientes > 0:
