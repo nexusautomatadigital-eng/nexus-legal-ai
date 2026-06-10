@@ -406,7 +406,12 @@ for _, row in df_procesos.iterrows():
 
             ))
 
+            print("ROWCOUNT:", cursor.rowcount)
+
             conn.commit()
+
+            print("✅ FUENTE RAMA ACTUALIZADA")
+            print("ID:", proceso_id)
         
             texto_hash = f"""
             {fecha_actuacion}
