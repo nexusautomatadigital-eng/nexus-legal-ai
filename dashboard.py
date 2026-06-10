@@ -809,26 +809,24 @@ with st.form(
 
                     st.session_state.primer_proceso = True
 
-                    st.success("""
 
-                    ✅ Proceso recibido correctamente
 
-                    🔍 Nexus iniciará el análisis automático.
+                    placeholder = st.empty()
 
-                    Fuentes consultadas:
+                    with placeholder.container():
 
-                    ✓ Rama Judicial
+                        st.info("""
+                    🤖 Nexus está analizando tu proceso.
 
-                    ✓ Publicaciones Procesales
+                    ⏳ Consultando Rama Judicial
 
-                    ✓ SAMAI
+                    ⏳ Consultando Publicaciones Procesales
 
-                    Las alertas serán enviadas por:
+                    ⏳ Consultando SAMAI
 
-                    ✓ Email
+                    ⏳ Generando historial procesal
 
-                    ✓ WhatsApp
-
+                    Tiempo estimado: 30 a 60 segundos.
                     """)
 
                     # ======================================
@@ -891,6 +889,34 @@ with st.form(
                             json=data
 
                         )
+
+                        if response.status_code == 204:
+
+                            st.success(
+                                "🚀 Nexus Engine iniciado correctamente"
+                            )
+
+                            st.info("""
+                            🔎 Nexus está procesando el expediente.
+
+                            La consulta puede tardar entre 30 y 90 segundos.
+
+                            Puede seguir navegando mientras Nexus recopila información de:
+
+                            ✓ Rama Judicial
+
+                            ✓ Publicaciones Procesales
+
+                            ✓ SAMAI
+
+                            ✓ Historial Procesal
+                            """)
+
+                        else:
+
+                            st.error(
+                                f"Error GitHub: {response.status_code}"
+                            )
 
                         print("GitHub Status:", response.status_code)
 
@@ -999,6 +1025,34 @@ else:
     total_documentos = get_total_documentos()
 
     # =========================================
+    # KPI CLIENTE
+    # =========================================
+
+    procesos_cliente = len(df)
+
+    cambios_detectados = len(
+        df[
+            df["estado"].isin(
+                [
+                    "NUEVA ACTUACION",
+                    "ACTUALIZADO"
+                ]
+            )
+        ]
+    )
+
+    ultima_revision = "Sin revisión"
+
+    if not df.empty:
+
+        ultima_revision = df.iloc[0]["fecha_consulta"]
+        ultima_revision = ultima_revision.strftime(
+            "%d-%m-%Y %H:%M"
+        )
+
+    estado_general = "🟢 Activo"
+
+    # =========================================
     # KPI PREMIUM
     # =========================================
 
@@ -1018,9 +1072,9 @@ else:
 
         <h3>⚖️</h3>
 
-        <h2>{total_vigilancias}</h2>
+        <h2>{procesos_cliente}</h2>
 
-        <p>Vigilancias Activas</p>
+        <p>Procesos Vigilados</p>
 
         </div>
 
@@ -1040,13 +1094,25 @@ else:
 
         <h3>🚨</h3>
 
-        <h2>{total_alertas}</h2>
+        <h2>{cambios_detectados}</h2>
 
-        <p>Alertas Generadas</p>
+        <p>Cambios Detectados</p>
 
         </div>
 
         """, unsafe_allow_html=True)
+
+    from datetime import datetime
+
+    fecha_formateada = "Sin revisión"
+                    
+    if ultima_revision:
+        try:
+            fecha_formateada = pd.to_datetime( 
+                ultima_revision
+            ).strftime("%d/%m/%Y %H:%M")
+        except:
+            pass
 
     with col3:
 
@@ -1061,10 +1127,10 @@ else:
         ">
 
         <h3>📄</h3>
+                           
+        <h2>{fecha_formateada}</h2>
 
-        <h2>{total_actuaciones}</h2>
-
-        <p>Actuaciones</p>
+        <p>Última Revisión Nexus</p>
 
         </div>
 
@@ -1084,9 +1150,9 @@ else:
 
         <h3>📎</h3>
 
-        <h2>{total_documentos}</h2>
+        <h2>{estado_general}</h2>
 
-        <p>Documentos</p>
+        <p>Estado Nexus</p>
 
         </div>
 
@@ -1180,6 +1246,20 @@ else:
             Nexus AI aún no ha generado resumen jurídico.
             """
 
+        rama = "🟢" if row["fuente_rama"] else "⚪"
+        publicaciones = "🟢" if row["fuente_publicaciones"] else "⚪"
+        samai = "🟢" if row["fuente_samai"] else "⚪"
+
+        pdfs = row["pdfs_encontrados"]
+
+        rama = "🟢" if row.get("fuente_rama") else "⚪"
+
+        publicaciones = "🟢" if row.get("fuente_publicaciones") else "⚪"
+
+        samai = "🟢" if row.get("fuente_samai") else "⚪"
+
+        pdfs = row.get("pdfs_encontrados", 0)
+
         components.html(f"""
 
         <div style="
@@ -1192,9 +1272,19 @@ else:
             color:white;
             font-family:Arial;
         ">
+        <div style="
+        background:#0f172a;
+        padding:10px;
+        border-radius:12px;
+        margin-bottom:15px;
+        ">
+
+        🟢 Monitoreo Activo
+
+        </div>
 
         <h3>
-        ⚖️ Vigilancia Procesal Activa
+        ⚖️ Expediente Judicial Monitoreado
         </h3>
 
         <p style="
@@ -1245,11 +1335,27 @@ else:
         {demandado.replace("Demandado:", "").strip()}
         </p>
 
+        <hr>
+
+        <p><b>🔎 Fuentes Monitoreadas</b></p>
+
+        <p>{rama} Rama Judicial</p>
+
+        <p>{publicaciones} Publicaciones Procesales</p>
+
+        <p>{samai} SAMAI</p>
+
+        <p>📄 PDFs encontrados: {pdfs}</p>
+
+        <p>
+        ⚪ IA Jurídica
+        </p>
+
         <div style="
-            background:#1f2937;
-            padding:15px;
-            border-radius:12px;
-            margin-top:15px;
+        background:#1f2937;
+        padding:15px;
+        border-radius:12px;
+        margin-top:15px;
         ">
 
         <b>🧠 Análisis Nexus AI</b>
@@ -1268,110 +1374,112 @@ else:
 # VIGILANCIAS V2
 # =========================================
 
-st.markdown("---")
+# DESACTIVADO TEMPORALMENTE
 
-st.subheader(
-    "📌 Mis Vigilancias (V2)"
-)
+#st.markdown("---")
 
-vigilancias = get_vigilancias_cliente(
+#st.subheader(
+    #"📌 Mis Vigilancias (V2)"
+#)
 
-    st.session_state.cliente_id
+#vigilancias = get_vigilancias_cliente(
 
-)
+    #st.session_state.cliente_id
 
-if not vigilancias:
+#)
 
-    st.info(
-        "No existen vigilancias activas."
-    )
+#if not vigilancias:
 
-else:
+    #st.info(
+        #"No existen vigilancias activas."
+    #)
 
-    for v in vigilancias:
+#else:
 
-        vigilancia_id = v[0]
+    #for v in vigilancias:
 
-        estado = v[1]
+        #vigilancia_id = v[0]
 
-        numero_proceso = v[2]
+        #estado = v[1]
 
-        fuente = v[3]
+        #numero_proceso = v[2]
 
-        especialidad = v[4]
+        #fuente = v[3]
 
-        despacho = v[5]
+        #especialidad = v[4]
 
-        ultima_actuacion = v[6]
+        #despacho = v[5]
 
-        fecha_ultima_actuacion = v[7]
+        #ultima_actuacion = v[6]
 
-        ultima_revision = v[8]
+        #fecha_ultima_actuacion = v[7]
+
+        #ultima_revision = v[8]
 
         # =====================================
         # VALIDACIONES
         # =====================================
 
-        if not ultima_actuacion:
+        #if not ultima_actuacion:
 
-            ultima_actuacion = "Sin información"
+            #ultima_actuacion = "Sin información"
 
-        if not fecha_ultima_actuacion:
+        #if not fecha_ultima_actuacion:
 
-            fecha_ultima_actuacion = "Sin información"
+            #fecha_ultima_actuacion = "Sin información"
 
-        if not ultima_revision:
+        #if not ultima_revision:
 
-            ultima_revision = "Sin revisión"
+            #ultima_revision = "Sin revisión"
 
     
-        with st.container(border=True):
+        #with st.container(border=True):
 
-            st.write(
-                f"📄 Proceso: {numero_proceso}"
-            )
+            #st.write(
+                #f"📄 Proceso: {numero_proceso}"
+            #)
 
-            st.write(
-                f"📡 Fuente: {fuente}"
-            )
+            #st.write(
+                #f"📡 Fuente: {fuente}"
+            #)
 
-            st.write(
-                f"⚖️ Especialidad: {especialidad}"
-            )
+            #st.write(
+                #f"⚖️ Especialidad: {especialidad}"
+            #)
 
-            st.write(
-                f"🏛️ Despacho: {despacho}"
-            )
+            #st.write(
+                #f"🏛️ Despacho: {despacho}"
+            #)
 
-            st.write(
-                f"📅 Última actuación: {fecha_ultima_actuacion}"
-            )
+            #st.write(
+                #f"📅 Última actuación: {fecha_ultima_actuacion}"
+            #)
 
-            st.write(
-                f"📄 Actuación: {ultima_actuacion}"
-            )
+            #st.write(
+                #f"📄 Actuación: {ultima_actuacion}"
+            #)
 
-            st.write(
-                f"🤖 Última revisión Nexus: {ultima_revision}"
-            )
+            #st.write(
+                #f"🤖 Última revisión Nexus: {ultima_revision}"
+            #)
 
-            st.write(
-                f"✅ Estado: {estado}"
-            )
+            #st.write(
+                #f"✅ Estado: {estado}"
+            #)
 
-            st.caption(
-                vigilancia_id
-            )        
+            #st.caption(
+                #vigilancia_id
+            #)        
 
 # =========================================
 # FOOTER
 # =========================================
 
-st.markdown("---")
+#st.markdown("---")
 
-st.caption(
-    "Nexus Legal AI © 2026 - Automatización Judicial Inteligente"
-)
+#st.caption(
+    #"Nexus Legal AI © 2026 - Automatización Judicial Inteligente"
+#)
 
 # =========================================
 # CLOSE DB
