@@ -51,6 +51,28 @@ DB_PORT = os.getenv("DB_PORT")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# =========================================
+# OPENAI CLIENT
+# =========================================
+
+client = OpenAI(
+    api_key=OPENAI_API_KEY
+)
+
+# =========================================
+# POSTGRESQL
+# =========================================
+
+conn = psycopg2.connect(
+    host=DB_HOST,
+    database=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    port=DB_PORT,
+    sslmode="require"
+)
+
+cursor = conn.cursor()
 
 # =========================================
 # CHROME OPTIONS
