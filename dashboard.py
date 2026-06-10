@@ -1246,19 +1246,13 @@ else:
             Nexus AI aún no ha generado resumen jurídico.
             """
 
-        rama = "🟢" if row["fuente_rama"] else "⚪"
-        publicaciones = "🟢" if row["fuente_publicaciones"] else "⚪"
-        samai = "🟢" if row["fuente_samai"] else "⚪"
-
-        pdfs = row["pdfs_encontrados"]
-
         rama = "🟢" if row.get("fuente_rama") else "⚪"
 
         publicaciones = "🟢" if row.get("fuente_publicaciones") else "⚪"
 
         samai = "🟢" if row.get("fuente_samai") else "⚪"
 
-        pdfs = row.get("pdfs_encontrados", 0)
+        pdfs = row.get("pdfs_encontrados", 0)       
 
         components.html(f"""
 
