@@ -6,6 +6,7 @@ import time
 import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as components
 from services.db import (
     get_connection,
@@ -1000,6 +1001,31 @@ ORDER BY id DESC
 
 """, conn, params=(cliente_logueado,))
 
+# =====================================
+# AUTO REFRESH NEXUS
+# =====================================
+
+procesos_pendientes = len(
+
+    df[
+        df["estado"] == "PENDIENTE"
+    ]
+
+)
+
+if procesos_pendientes > 0:
+
+    st.info("""
+    ⏳ Nexus está analizando tu expediente.
+
+    La información se actualizará automáticamente.
+    """)
+
+    st_autorefresh(
+        interval=5000,
+        key="nexus_refresh"
+    )
+
 # =========================================
 # DASHBOARD VACIO
 # =========================================
@@ -1011,6 +1037,45 @@ if df.empty:
     )
 
 else:
+
+    # =====================================
+    # AUTO REFRESH NEXUS
+    # =====================================
+
+    procesos_pendientes = len(
+
+        df[
+            df["estado"] == "PENDIENTE"
+        ]
+
+    )
+
+    if procesos_pendientes > 0:
+
+        st.warning(
+            f"🟡 Nexus procesando {procesos_pendientes} expediente(s)"
+        )
+
+        st.info("""
+        ⏳ Nexus está consultando:
+
+        ✓ Rama Judicial
+        ✓ Publicaciones Procesales
+        ✓ SAMAI
+
+        La información se actualizará automáticamente.
+        """)
+
+        st_autorefresh(
+            interval=5000,
+            key="nexus_refresh"
+        )
+
+    else:
+
+        st.success(
+            "🟢 Todos los expedientes están actualizados"
+        )
 
     # =====================================
     # KPI NEXUS
