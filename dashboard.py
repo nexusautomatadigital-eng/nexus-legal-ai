@@ -1001,31 +1001,6 @@ ORDER BY id DESC
 
 """, conn, params=(cliente_logueado,))
 
-# =====================================
-# AUTO REFRESH NEXUS
-# =====================================
-
-procesos_pendientes = len(
-
-    df[
-        df["estado"] == "PENDIENTE"
-    ]
-
-)
-
-if procesos_pendientes > 0:
-
-    st.info("""
-    ⏳ Nexus está analizando tu expediente.
-
-    La información se actualizará automáticamente.
-    """)
-
-    st_autorefresh(
-        interval=5000,
-        key="nexus_refresh"
-    )
-
 # =========================================
 # DASHBOARD VACIO
 # =========================================
