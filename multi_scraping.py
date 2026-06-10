@@ -55,6 +55,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # OPENAI CLIENT
 # =========================================
 
+print("OPENAI:", OPENAI_API_KEY)
+
 client = OpenAI(
     api_key=OPENAI_API_KEY
 )
@@ -106,7 +108,7 @@ driver = webdriver.Chrome(
 
 )
 
-driver.set_page_load_timeout(60)
+driver.set_page_load_timeout(120)
 
 # =========================================
 # LEER PROCESOS SUPABASE
@@ -221,13 +223,41 @@ for _, row in df_procesos.iterrows():
 
             conn.commit()
 
+            print("🔄 ESTADO CONSULTANDO")
+            print("ID:", proceso_id)
+
             # =====================================
             # ABRIR RAMA JUDICIAL
             # =====================================
 
-            driver.get(
-                "https://consultaprocesos.ramajudicial.gov.co/"
-            )
+            try:
+
+                driver.get(
+                    "https://consultaprocesos.ramajudicial.gov.co/"
+                )
+
+            except Exception as e:
+
+                print("❌ Timeout Rama Judicial")
+                print(e)
+
+                cursor.execute("""
+
+                UPDATE procesos
+
+                SET estado='REINTENTAR'
+
+                WHERE id=%s
+
+                """, (
+
+                    proceso_id,
+
+                ))
+
+                conn.commit()
+
+                continue
 
             driver.maximize_window()
 
@@ -296,10 +326,6 @@ for _, row in df_procesos.iterrows():
                     boton.click()
 
                     break
-
-            print("✅ Consulta ejecutada")
-
-            time.sleep(10)
 
             # =====================================
             # VALIDAR RESULTADO
@@ -693,15 +719,27 @@ Ingrese al dashboard para revisar detalles.
 
         except Exception as e:
 
-            driver.save_screenshot(
-                f"error_{proceso_id}.png"
-            )
-
-            conn.rollback()
-
             print(f"❌ Error proceso {numero_proceso}")
 
             print(e)
+
+            try:
+
+                driver.save_screenshot(
+                    f"error_{proceso_id}.png"
+                )
+
+            except Exception as screenshot_error:
+
+                print("❌ No fue posible guardar screenshot")
+                print(screenshot_error)
+
+            try:
+
+                conn.rollback()
+
+            except:
+                pass
 
             print(f"🔁 Reintentando ({intento+1}/3)...")
 
@@ -710,21 +748,30 @@ Ingrese al dashboard para revisar detalles.
             if intento < 2:
                 continue
 
-            cursor.execute("""
+            try:
 
-            UPDATE procesos
+                cursor.execute("""
 
-            SET estado = 'ERROR'
+                UPDATE procesos
 
-            WHERE id = %s
+                SET estado = 'REINTENTAR'
 
-            """, (
+                WHERE id = %s
 
-                proceso_id,
+                """, (
 
-            ))
+                    proceso_id,
 
-            conn.commit()
+                ))
+
+                conn.commit()
+
+                print("⚠️ Proceso marcado como REINTENTAR")
+
+            except Exception as db_error:
+
+                print("❌ Error actualizando BD")
+                print(db_error)
 
 # =========================================
 # FINALIZAR
