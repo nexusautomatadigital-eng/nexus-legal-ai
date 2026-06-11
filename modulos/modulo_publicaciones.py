@@ -1,0 +1,844 @@
+import time
+
+import hashlib
+
+import re
+
+import json
+
+from selenium.webdriver.common.by import By
+
+from selenium.webdriver.support.ui import WebDriverWait
+
+from selenium.webdriver.support.ui import Select
+
+from selenium.webdriver.support import expected_conditions as EC
+
+
+# ==========================================
+# CONSULTAR PUBLICACIONES
+# ==========================================
+
+def consultar_publicaciones(
+
+    driver,
+    conn,
+    juzgado,
+    especialidad,
+    departamento,
+    municipio
+
+):
+
+    try:
+
+        print("🔎 CONSULTANDO PUBLICACIONES")
+
+        # ======================================
+        # ABRIR PORTAL
+        # ======================================
+
+        url_publicaciones = (
+            "https://publicacionesprocesales.ramajudicial.gov.co/"
+        )
+
+        publicaciones_payload = []
+
+        for intento in range(3):
+
+            print(f"🌐 Intento portal: {intento+1}")
+
+            driver.get(url_publicaciones)
+
+            time.sleep(8)
+
+            html = driver.page_source.lower()
+
+            if (
+
+                "error inesperado del sistema" not in html
+                and
+                "unable to process template" not in html
+
+            ):
+
+                print("✅ Portal cargado correctamente")
+
+                break
+
+            print("⚠️ Portal con error interno")
+
+            time.sleep(5)
+
+            if (
+
+                "error inesperado del sistema" in html
+                or
+                "unable to process template" in html
+
+            ):
+
+                print("❌ PORTAL RAMA INESTABLE")
+
+                return {
+
+                    "fuente": "PUBLICACIONES",
+
+                    "estado": "INACTIVO",
+
+                    "fecha_revision": time.strftime("%Y-%m-%d %H:%M:%S")
+
+                }
+
+        # ======================================
+        # VALIDAR CARGA
+        # ======================================
+
+        time.sleep(10)
+
+        selects = driver.find_elements(
+            By.TAG_NAME,
+            "select"
+        )
+
+        print(f"📋 Selects encontrados: {len(selects)}")
+
+        print("✅ Portal publicaciones cargado")
+
+        print(driver.current_url)
+
+        print("🌐 HTML RECIBIDO OK")
+
+        # ======================================
+        # VALIDAR ERROR PORTAL
+        # ======================================
+
+        html = driver.page_source.lower()
+
+        if (
+
+            "error inesperado del sistema" in html
+            or
+            "unable to process template" in html
+
+        ):
+
+            print("🚨 PORTAL RAMA DEVOLVIO ERROR INTERNO")
+
+            return None
+
+        # ======================================
+        # DEBUG TITULO
+        # ======================================
+
+        print("TITULO:", driver.title)
+
+        # ======================================
+        # DEBUG IFRAMES
+        # ======================================
+
+        iframes = driver.find_elements(
+           By.TAG_NAME,
+            "iframe"
+        )
+
+        print(f"🪟 Iframes encontrados: {len(iframes)}")
+
+              
+        # ======================================
+        # DEBUG DIVS
+        # ======================================
+
+        # ======================================
+        # BUSCAR INPUTS REALES
+        # ======================================
+
+        inputs = driver.find_elements(
+            By.TAG_NAME,
+            "input"
+        )
+
+        print(f"🔎 Inputs encontrados: {len(inputs)}")
+
+        for i, inp in enumerate(inputs):
+
+            try:
+
+                tipo = inp.get_attribute("type")
+
+                nombre = inp.get_attribute("name")
+
+                placeholder = inp.get_attribute("placeholder")
+
+                value = inp.get_attribute("value")
+
+                print(
+                    f"{i} | type={tipo} | name={nombre} | placeholder={placeholder} | value={value}"
+                )
+
+            except:
+
+                pass
+
+        divs = driver.find_elements(
+            By.TAG_NAME,
+            "div"
+        )
+
+        print(f"📦 Divs encontrados: {len(divs)}")
+
+        # ======================================
+        # BUSCAR SELECTS
+        # ======================================
+
+        selects = driver.find_elements(
+            By.TAG_NAME,
+            "select"
+        )
+
+        print(f"📋 Selects encontrados: {len(selects)}")
+
+        if len(selects) == 0:
+
+            print("❌ PORTAL NO CARGO SELECTS")
+
+            return None
+        
+        for i, sel in enumerate(selects):
+
+            try:
+
+                print(
+
+                    f"{i} | ID={sel.get_attribute('id')} | NAME={sel.get_attribute('name')}"
+
+                )
+
+            except:
+
+                pass
+
+        time.sleep(3)
+
+        # ======================================
+        # SELECCIONAR DEPARTAMENTO
+        # ======================================
+
+        select_departamento = Select(
+
+            selects[1]
+            
+        )
+
+        select_departamento.select_by_visible_text(
+            "BOYACÁ"
+        )
+
+        print("✅ Departamento seleccionado")
+
+        time.sleep(5)
+
+        # ======================================
+        # SELECCIONAR MUNICIPIO
+        # ======================================
+
+        select_municipio = Select(
+
+           selects[2]
+
+        )
+
+        select_municipio.select_by_visible_text(
+            "TUNJA"
+        )
+       
+        print("✅ Municipio seleccionado")
+
+        time.sleep(5)
+
+
+        # ======================================
+        # SELECCIONAR ENTIDAD
+        # ======================================
+
+        select_entidad = Select(
+
+            selects[3]
+
+        )
+
+        select_entidad.select_by_value("31")
+
+        print("✅ Entidad seleccionada")
+
+        time.sleep(5)
+
+        # ======================================
+        # SELECCIONAR ESPECIALIDAD
+        # ======================================
+
+        select_especialidad = Select(
+
+            selects[4]
+
+        )
+
+        select_especialidad.select_by_visible_text(
+            "CIVIL"
+        )
+        
+        print("✅ Especialidad seleccionada")
+
+        # ======================================
+        # SELECCIONAR DESPACHO
+        # ======================================
+
+        time.sleep(5)
+
+        select_despacho = Select(
+
+            selects[5]
+
+        )
+
+        select_despacho.select_by_value(
+            "150013103004"
+        )
+
+        print("✅ Despacho seleccionado")
+
+        time.sleep(5)
+
+
+        for i, sel in enumerate(selects):
+
+            try:
+
+                outer = sel.get_attribute("outerHTML")
+
+                print(f"\n========== SELECT {i} ==========\n")
+
+                print(outer[:1500])
+
+            except:
+
+                pass
+
+              
+        # ======================================
+        # CLICK INPUT BUSCAR
+        # ======================================
+
+        boton_buscar = driver.find_element(
+
+            By.XPATH,
+
+            "//input[@value='Buscar']"
+
+        )
+
+        boton_buscar.click()
+
+        print("🚀 Busqueda ejecutada")
+
+        time.sleep(10)
+
+        # ======================================
+        # VALIDAR RESULTADOS
+        # ======================================
+
+        links = driver.find_elements(
+            By.TAG_NAME,
+            "a"
+        )
+
+        print(f"🔗 Links encontrados: {len(links)}")
+
+        for i, link in enumerate(links):
+
+            try:
+
+                texto = link.text.strip()
+
+                href = link.get_attribute("href")
+
+                # ======================================
+                # FILTRAR PUBLICACIONES REALES
+                # ======================================
+
+                if (
+
+                    href
+                    and
+                    "articleId" in href
+                    and
+                    texto != "VER DETALLE"
+
+                ):
+
+                    print("\n🔥 PUBLICACION ENCONTRADA")
+
+                    print(f"TEXTO: {texto}")
+
+                    print(f"LINK: {href}")
+
+                    # ======================================
+                    # EXTRAER DETALLE
+                    # ======================================
+
+                    detalle = extraer_detalle_publicacion(
+
+                        driver,
+                        href
+
+                    )
+
+                    print(detalle)
+
+                    if not detalle:
+
+                        continue
+
+                    publicaciones_payload.append(
+                        detalle
+                    )
+
+
+                    # ======================================
+                    # VALIDAR SI YA EXISTE
+                    # ======================================
+
+                    #if conn:
+
+                        #cursor = conn.cursor()
+
+                        #cursor.execute("""
+
+                        #SELECT hash_publicacion
+
+                        #FROM publicaciones
+
+                        #WHERE article_id = %s
+
+                        #""", (
+
+                            #detalle["article_id"],
+
+                        #))
+
+                        #existe = cursor.fetchone()
+
+                        # ======================================
+                        # VALIDAR CAMBIO HASH
+                        # ======================================
+
+                        #if existe:
+
+                            #hash_guardado = existe[0]
+
+                            #if hash_guardado != detalle["hash_publicacion"]:
+
+                                #print("🚨 CAMBIO DETECTADO EN PUBLICACION")
+
+                                #cursor.execute("""
+
+                                #UPDATE publicaciones
+
+                                #SET
+
+                                    #detalle = %s,
+                                    #hash_publicacion = %s,
+                                    #pdf_url = %s,
+                                    #fecha_consulta = NOW(),
+                                    #actualizado = TRUE
+
+                                #WHERE article_id = %s
+
+                                #""", (
+
+                                    #detalle["detalle"],
+                                    #detalle["hash_publicacion"],
+                                    #detalle["pdf_url"],
+                                    ##detalle["article_id"]
+
+                                #))
+
+                                #conn.commit()
+
+                                #print("✅ PUBLICACION ACTUALIZADA")
+
+                            #else:
+
+                                #print("✅ Publicación sin cambios")
+
+                            #continue
+                    
+                        # ======================================
+                        # NUEVA PUBLICACION
+                        # ======================================
+
+                        #if not existe:
+
+                            #print("🚨 NUEVA PUBLICACION DETECTADA")
+
+                            #cursor.execute("""
+
+                            #INSERT INTO publicaciones (
+
+                                #article_id,
+                                #titulo,
+                                #url,
+                                #despacho,
+                                #especialidad,
+                                #fecha_publicacion,
+                                #detalle,
+                                #hash_publicacion,
+                                #pdf_url
+
+                            #)
+
+                            #VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+
+                            #""", (
+
+                                #detalle["article_id"],
+                                #texto,
+                                #href,
+                                #detalle["despacho"],
+                                #detalle["especialidad"],
+                                #detalle["fecha_publicacion"],
+                                #detalle["detalle"],
+                                #detalle["hash_publicacion"],
+                                #detalle["pdf_url"]
+
+                            #))
+
+                            #conn.commit()
+
+                            #print("✅ PUBLICACION GUARDADA")
+
+                    #else:
+
+                        #print("✅ Publicación ya existente")
+
+                   
+            except Exception as e:
+
+                print(f"❌ ERROR LOOP PUBLICACION: {e}")
+
+        # ======================================
+        # RESULTADO BASE
+        # ======================================
+
+        # resultado = {
+        
+
+            #"fuente": "PUBLICACIONES",
+            #"estado": "CONECTADO",
+            #"juzgado": juzgado,
+            #"especialidad": especialidad,
+            #"departamento": departamento,
+            #"municipio": municipio,
+            #"fecha_revision": time.strftime("%Y-%m-%d %H:%M:%S")
+        #}
+
+        print()
+
+        print("🔥 TOTAL PUBLICACIONES PAYLOAD")
+
+        print(len(publicaciones_payload))
+
+        return publicaciones_payload
+        
+        
+    except Exception as e:
+
+        print(f"❌ ERROR PUBLICACIONES: {e}")
+
+        return None
+    
+# ==========================================
+# EXTRAER DETALLE PUBLICACION
+# ==========================================
+
+def extraer_detalle_publicacion(
+
+    driver,
+    url
+
+):
+    pdf_urls = []
+
+    article_id = None
+
+    if "articleId=" in url:
+
+        article_id = url.split("articleId=")[1].split("&")[0]
+
+    print(f"🆔 ARTICLE ID: {article_id}")
+
+    try:
+
+        print("\n🚀 ABRIENDO DETALLE")
+
+        # ======================================
+        # NUEVA PESTAÑA
+        # ======================================
+
+        driver.execute_script(
+
+            "window.open('');"
+
+        )
+
+        driver.switch_to.window(
+            driver.window_handles[-1]
+        )
+
+        driver.get(url)
+
+        time.sleep(8)
+
+        # ======================================
+        # BODY
+        # ======================================
+
+        body = driver.find_element(
+            By.TAG_NAME,
+            "body"
+        )
+
+        texto = body.text
+
+        # ======================================
+        # EXTRACCION METADATA
+        # ======================================
+
+        despacho = None
+
+        especialidad = None
+
+        fecha_publicacion = None
+
+        lineas = texto.split("\n")
+
+        for linea in lineas:
+
+            linea_upper = linea.upper()
+
+            # ==================================
+            # DESPACHO
+            # ==================================
+
+            if (
+
+                "JUZGADO" in linea_upper
+                and
+                "UBICACIÓN" not in linea_upper
+                and
+                "DESPACHOS" not in linea_upper
+
+            ):
+                
+                despacho = linea.strip()
+
+            # ==================================
+            # ESPECIALIDAD
+            # ==================================
+
+            if "CIVIL" in linea_upper:
+
+                especialidad = "CIVIL"
+
+            elif "PENAL" in linea_upper:
+
+                especialidad = "PENAL"
+
+            elif "LABORAL" in linea_upper:
+
+                especialidad = "LABORAL"
+
+            elif "ADMINISTRATIVO" in linea_upper:
+
+                especialidad = "ADMINISTRATIVO"
+
+            # ==================================
+            # FECHA
+            # ==================================
+
+            if (
+
+                fecha_publicacion is None
+
+                and
+
+                re.search(
+                    r"\d{1,2}\s[a-zA-Z]{3}\s\d{4}",
+                    linea
+                )
+
+            ):
+
+                fecha_publicacion = linea.strip()
+
+        # ======================================
+        # HASH PUBLICACION
+        # ======================================
+
+        hash_publicacion = hashlib.md5(
+
+            texto.encode()
+
+        ).hexdigest()
+
+        print(f"🔐 HASH: {hash_publicacion}")
+
+        print("\n========== DETALLE ==========\n")
+
+        print(texto[:5000])
+
+        # ======================================
+        # PDFS
+        # ======================================
+
+        pdfs = driver.find_elements(
+            By.TAG_NAME,
+            "a"
+        )
+
+        print(f"📄 LINKS PDF DETECTADOS: {len(pdfs)}")
+
+        for pdf in pdfs:
+
+            try:
+
+                texto_pdf = pdf.text.strip()
+
+                href = pdf.get_attribute("href")
+
+                onclick = pdf.get_attribute("onclick")
+
+                print("\n====== LINK ======")
+
+                print(f"TEXTO: {texto_pdf}")
+
+                print(f"HREF: {href}")
+
+                print(f"ONCLICK: {onclick}")
+
+                # ==================================
+                # DETECTAR PDF POR TEXTO
+                # ==================================
+
+                if ".pdf" in texto_pdf.lower():
+
+                    print("✅ PDF DETECTADO")
+
+                    pdf_url = None
+
+                    # ==================================
+                    # URL DIRECTA
+                    # ==================================
+
+                    if href and href != "#":
+
+                        pdf_url = href
+
+                    # ==================================
+                    # URL EN ONCLICK
+                    # ==================================
+
+                    elif onclick:
+
+                        pdf_url = onclick
+
+                    # ==================================
+                    # AGREGAR PDF
+                    # ==================================
+
+                    if pdf_url:
+
+                        pdf_urls.append(pdf_url)
+
+                        print(f"📄 PDF URL: {pdf_url}")
+
+                    
+            except Exception as e:
+
+                print(f"❌ ERROR PDF: {e}")
+        # ======================================
+        # CERRAR PESTAÑA
+        # ======================================
+
+        driver.close()
+
+        driver.switch_to.window(
+            driver.window_handles[0]
+        )
+        
+        payload = {
+
+            "numero_proceso": f"PUB_{article_id}",
+
+            "fuente": "PUBLICACIONES",
+
+            "jurisdiccion": "PUBLICACIONES",
+
+            "especialidad": especialidad,
+
+            "despacho": despacho,
+
+            "metadata": {
+
+                "article_id": article_id,
+
+                "fecha_publicacion": fecha_publicacion
+
+            },
+
+            "actuaciones": [
+
+                {
+
+                    "fecha_actuacion": fecha_publicacion,
+
+                    "tipo_actuacion": "PUBLICACION_PROCESAL",
+
+                    "detalle": texto,
+
+                    "metadata": {}
+
+                }
+
+            ],
+
+            "documentos": [
+
+                {
+
+                    "nombre": f"PUBLICACION_{article_id}",
+
+                    "url": pdf,
+
+                    "metadata": {}
+
+                }
+
+                for pdf in pdf_urls
+
+            ]
+
+        }
+    
+        print()
+        print("🔥 PAYLOAD PUBLICACIONES")
+        print(payload)
+
+        return payload
+
+
+    except Exception as e:
+
+        print(f"❌ ERROR DETALLE: {e}")
+
+        return None
