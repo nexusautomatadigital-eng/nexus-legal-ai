@@ -14,9 +14,13 @@ from services.hash_service import (
     generar_hash_documento
 )
 
+import streamlit as st
+import psycopg2
+
 env_path = Path(__file__).resolve().parent.parent / '.env'
 
 load_dotenv(dotenv_path=env_path)
+
 
 # ==========================================
 
@@ -25,20 +29,34 @@ load_dotenv(dotenv_path=env_path)
 # ==========================================
 
 def get_connection():
+
     print("🔥 GET_CONNECTION")
-    print("HOST:", os.getenv("DB_HOST"))
-    print("PORT:", os.getenv("DB_PORT"))
+
+    print(
+        "HOST:",
+        st.secrets["SUPABASE_HOST"]
+    )
+
+    print(
+        "PORT:",
+        st.secrets["SUPABASE_PORT"]
+    )
 
     return psycopg2.connect(
 
-        host=os.getenv("DB_HOST"),
-        database=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        port=os.getenv("DB_PORT"),
+        host=st.secrets["SUPABASE_HOST"],
+
+        database=st.secrets["SUPABASE_DB"],
+
+        user=st.secrets["SUPABASE_USER"],
+
+        password=st.secrets["SUPABASE_PASSWORD"],
+
+        port=st.secrets["SUPABASE_PORT"],
+
         sslmode="require"
 
-)
+    )
 
 # ==========================================
 # SAVE PROCESO V2
