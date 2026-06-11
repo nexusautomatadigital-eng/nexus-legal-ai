@@ -25,8 +25,6 @@ from services.db import (
 
 )
 
-conn.close()
-
 load_dotenv()
 
 print("\n🔥 SECRETS DISPONIBLES")
