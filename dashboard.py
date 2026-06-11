@@ -25,11 +25,14 @@ from services.db import (
 
 )
 
+conn.close()
 
 load_dotenv()
 
 print("\n🔥 SECRETS DISPONIBLES")
 print(st.secrets.keys())
+
+
 
 # =========================================
 # CONFIG
@@ -992,14 +995,21 @@ with st.form(
 # CONSULTAR PROCESOS
 # =========================================
 
-df = pd.read_sql("""
-
+df = pd.read_sql("""                 
+                
 SELECT *
 FROM procesos
 WHERE cliente = %s
 ORDER BY id DESC
 
 """, conn, params=(cliente_logueado,))
+
+print("ESTADO DF")
+print(
+    df[["id","estado"]]
+)
+
+conn.close()
 
 # =========================================
 # DASHBOARD VACIO
@@ -1043,8 +1053,10 @@ else:
         La información se actualizará automáticamente.
         """)
 
+        
+
         st_autorefresh(
-            interval=5000,
+            interval=15000,
             key="nexus_refresh"
         )
 
