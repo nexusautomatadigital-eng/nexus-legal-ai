@@ -29,6 +29,7 @@ load_dotenv()
 
 print("\n🔥 SECRETS DISPONIBLES")
 print(st.secrets.keys())
+print("TEST SECRET =", st.secrets.get("TEST"))
 
 
 
