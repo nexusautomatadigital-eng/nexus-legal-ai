@@ -30,33 +30,58 @@ load_dotenv(dotenv_path=env_path)
 
 def get_connection():
 
-    print("🔥 GET_CONNECTION")
+    #print("🔥 GET_CONNECTION")
 
-    print(
-        "HOST:",
-        st.secrets["SUPABASE_HOST"]
-    )
+    #print(
+        #"HOST:",
+        #st.secrets["SUPABASE_HOST"]
+    #)
 
-    print(
-        "PORT:",
-        st.secrets["SUPABASE_PORT"]
-    )
+    #print(
+        #"PORT:",
+        #st.secrets["SUPABASE_PORT"]
+    #)
 
-    return psycopg2.connect(
+    #return psycopg2.connect(
 
-        host=st.secrets["SUPABASE_HOST"],
+        #host=st.secrets["SUPABASE_HOST"],
 
-        database=st.secrets["SUPABASE_DB"],
+        #database=st.secrets["SUPABASE_DB"],
 
-        user=st.secrets["SUPABASE_USER"],
+        #user=st.secrets["SUPABASE_USER"],
 
-        password=st.secrets["SUPABASE_PASSWORD"],
+        #password=st.secrets["SUPABASE_PASSWORD"],
 
-        port=st.secrets["SUPABASE_PORT"],
+        #port=st.secrets["SUPABASE_PORT"],
 
-        sslmode="require"
+        #sslmode="require"
 
-    )
+    #)
+
+    try:
+
+        conn = psycopg2.connect(
+            host=st.secrets["SUPABASE_HOST"],
+            database=st.secrets["SUPABASE_DB"],
+            user=st.secrets["SUPABASE_USER"],
+            password=st.secrets["SUPABASE_PASSWORD"],
+            port=st.secrets["SUPABASE_PORT"],
+            sslmode="require"
+        )
+
+        print("✅ CONEXION EXITOSA")
+
+        return conn
+
+    except Exception as e:
+
+        print("❌ ERROR CONEXION")
+
+        print(type(e))
+        print(str(e))
+
+        raise
+
 
     
 
