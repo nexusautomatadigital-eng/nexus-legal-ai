@@ -2,7 +2,7 @@ import os
 import psycopg2
 import json
 
-print("🚨 DB.PY VERSION NUEVA CARGADA")
+print("🚨 DB.PY VERSION 11 JUNIO 2026")
 print(__file__)
 
 from dotenv import load_dotenv
@@ -57,6 +57,8 @@ def get_connection():
         sslmode="require"
 
     )
+
+    
 
 # ==========================================
 # SAVE PROCESO V2
