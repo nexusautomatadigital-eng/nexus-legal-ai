@@ -1054,7 +1054,7 @@ else:
         
 
         st_autorefresh(
-            interval=15000,
+            interval=10000,
             key="nexus_refresh"
         )
 
