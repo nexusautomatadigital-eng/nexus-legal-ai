@@ -24,6 +24,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 # =========================================
+# MODULOS NEXUS
+# =========================================
+
+from modulos.modulo_publicaciones import (
+    consultar_publicaciones
+)
+
+from modulos.modulo_samai import (
+    consultar_samai
+)
+
+# =========================================
 # LOAD ENV
 # =========================================
 
@@ -615,6 +627,7 @@ for _, row in df_procesos.iterrows():
 
             print("✅ Proceso actualizado")
 
+            
             
             # =====================================
             # ENVIAR ALERTAS
