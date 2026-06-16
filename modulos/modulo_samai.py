@@ -878,10 +878,10 @@ def consultar_samai(driver, radicado):
 
                 print("🚀 ABRIENDO EXPEDIENTE")
 
-                driver.execute_script("""
+                driver.execute_script(f"""
 
                     goprocs_gestion(
-                        '15001333300420230000100',
+                        '{radicado}',
                         '1500133',
                         '1'
                    );
@@ -1039,7 +1039,7 @@ def consultar_samai(driver, radicado):
                     "https://samai.consejodeestado.gov.co/"
                     "PaginasTransversales/"
                     "DocumentosExpediente.aspx"
-                    "?numproceso=15001333300420230000100"
+                    f"?numproceso={radicado}"
                     "&corporacion=1500133"
                 )
 

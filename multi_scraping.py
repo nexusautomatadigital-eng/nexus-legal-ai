@@ -35,6 +35,70 @@ from modulos.modulo_samai import (
     consultar_samai
 )
 
+from services.db import (
+    save_proceso_v2,
+    save_actuaciones_v2,
+    save_documentos_v2
+)
+
+# =========================================
+# PERSISTENCIA NEXUS V2
+# =========================================
+
+def persistir_payload(payload):
+
+    if not payload:
+        return None
+
+    proceso_id = save_proceso_v2(payload)
+
+    print(
+        f"📌 PROCESO ID GENERADO: {proceso_id}"
+    )
+
+    if not proceso_id:
+        return None
+
+    save_actuaciones_v2(
+
+        proceso_id=proceso_id,
+
+        numero_proceso=payload.get(
+            "numero_proceso"
+        ),
+
+        actuaciones=payload.get(
+            "actuaciones",
+            []
+        ),
+
+        fuente=payload.get(
+            "fuente"
+        )
+
+    )
+
+    save_documentos_v2(
+
+        proceso_id=proceso_id,
+
+        numero_proceso=payload.get(
+            "numero_proceso"
+        ),
+
+        documentos=payload.get(
+            "documentos",
+            []
+        ),
+
+        fuente=payload.get(
+            "fuente"
+        )
+
+    )
+
+    return proceso_id
+
 # =========================================
 # LOAD ENV
 # =========================================
@@ -448,6 +512,65 @@ for _, row in df_procesos.iterrows():
 
             juzgado = lineas[3]
 
+            juzgado_upper = juzgado.upper()
+
+            # ==========================
+            # ESPECIALIDAD
+            # ==========================
+
+            if "ADMINISTRATIVO" in juzgado_upper:
+
+                especialidad_detectada = "ADMINISTRATIVO"
+
+            elif "CIVIL" in juzgado_upper:
+
+                especialidad_detectada = "CIVIL"
+
+            elif "PENAL" in juzgado_upper:
+
+                especialidad_detectada = "PENAL"
+
+            elif "LABORAL" in juzgado_upper:
+
+                especialidad_detectada = "LABORAL"
+
+            else:
+
+                especialidad_detectada = "CIVIL"
+
+            # ==========================
+            # MUNICIPIO / DEPARTAMENTO
+            # ==========================
+
+            municipio_detectado = ""
+
+            departamento_detectado = ""
+
+            if "(" in juzgado and ")" in juzgado:
+
+                departamento_detectado = (
+                    juzgado
+                    .split("(")[1]
+                    .replace(")", "")
+                    .strip()
+                )
+
+                texto_sin_parentesis = (
+                    juzgado.split("(")[0]
+                )
+
+                partes = texto_sin_parentesis.split(" DE ")
+
+                if len(partes) > 1:
+
+                    municipio_detectado = partes[-1].strip()
+
+            print("ESPECIALIDAD:", especialidad_detectada)
+
+            print("MUNICIPIO:", municipio_detectado)
+
+            print("DEPARTAMENTO:", departamento_detectado)
+                                    
             demandante = lineas[4]
 
             demandado = lineas[5]
@@ -627,7 +750,145 @@ for _, row in df_procesos.iterrows():
 
             print("✅ Proceso actualizado")
 
-            
+            # =====================================
+            # CONSULTA PUBLICACIONES
+            # =====================================
+
+            try:
+
+                print("🔎 CONSULTANDO PUBLICACIONES")
+
+                resultado_publicaciones = consultar_publicaciones(
+
+                    driver,
+
+                    conn,
+
+                    juzgado,
+                     
+                    especialidad_detectada,
+
+                    departamento_detectado,
+
+                    municipio_detectado
+
+                )
+
+                print("\n===== DEBUG PUBLICACIONES =====")
+
+                if resultado_publicaciones:
+
+                    print(type(resultado_publicaciones))
+
+                    if isinstance(resultado_publicaciones, list):
+                        print("TOTAL:", len(resultado_publicaciones))
+
+                    else:
+                        print(resultado_publicaciones)
+
+                else:
+
+                    print("PUBLICACIONES VACIO")
+
+                print("RESULTADO PUBLICACIONES")
+
+                print(resultado_publicaciones)
+
+            except Exception as e:
+
+                print("❌ ERROR PUBLICACIONES")
+
+                print(e)
+
+
+            # =====================================
+            # CONSULTA SAMAI
+            # =====================================
+
+            try:
+
+                print("🔎 CONSULTANDO SAMAI")
+
+                resultado_samai = consultar_samai(
+
+                    driver,
+
+                    numero_proceso
+
+                )
+
+                print("\n===== DEBUG SAMAI =====")
+
+                print(
+                    "TIPO:",
+                    type(resultado_samai)
+
+                )
+
+                if resultado_samai:
+
+                    print(
+                        "CLAVES:",
+                        resultado_samai.keys()
+                    )
+
+                    print(
+                        "ACTUACIONES:",
+                        len(
+                            resultado_samai.get(
+                                "actuaciones",
+                                []
+                            )
+                        )
+                    )
+
+                    print(
+                        "DOCUMENTOS:",
+                        len(
+                            resultado_samai.get(
+                                "documentos",
+                                []
+                            )
+                        )
+                    )
+
+                    
+                    if len(
+                        resultado_samai.get(
+                            "actuaciones",
+                            []
+                        )
+                    ) > 0:
+
+                        persistir_payload(
+                            resultado_samai
+                        )
+
+                        print(
+                            "✅ SAMAI PERSISTIDO"
+                        )
+
+                    else:
+
+                        print(
+                            "⚠️ SAMAI SIN RESULTADOS"
+                        )
+
+                else:
+
+                    print(
+                        "⚠️ SAMAI VACIO"
+                    )             
+
+            except Exception as e:
+
+                print(
+                    "❌ ERROR SAMAI"
+                )
+
+                print(e)   
+
+                     
             
             # =====================================
             # ENVIAR ALERTAS

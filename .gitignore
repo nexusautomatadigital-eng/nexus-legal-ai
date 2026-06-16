@@ -1,4 +1,13 @@
 .env
+
+.streamlit/secrets.toml
+
 __pycache__/
+
 *.pyc
+
 chromedriver.exe
+
+error_*.png
+
+test_*.py

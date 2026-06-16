@@ -199,6 +199,16 @@ for _, row in df.iterrows():
                     resultado
                 )
 
+                print("\n===== PARAMETROS PUBLICACIONES =====")
+
+                print("JUZGADO:", juzgado)
+
+                print("ESPECIALIDAD:", especialidad_detectada)
+
+                print("DEPARTAMENTO:", departamento_detectado)
+
+                print("MUNICIPIO:", municipio_detectado)
+
                 resultado_publicaciones = consultar_publicaciones(
                                
 
@@ -223,6 +233,7 @@ for _, row in df.iterrows():
                     )
 
                     for payload in resultado_publicaciones:
+                        
 
                         persistir_payload(
                             payload

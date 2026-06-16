@@ -80,6 +80,25 @@ def get_connection():
         print(type(e))
         print(str(e))
 
+        try:
+
+            print(
+                "HOST ST:",
+                st.secrets.get(
+                    "SUPABASE_HOST",
+                    "NO"
+                )
+            )
+
+        except:
+
+            print("HOST ST: NO DISPONIBLE")
+
+        print(
+            "HOST ENV:",
+            os.getenv("DB_HOST")
+        )
+
         raise
 
 

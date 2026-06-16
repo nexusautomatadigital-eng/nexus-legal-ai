@@ -48,11 +48,35 @@ def consultar_publicaciones(
 
             print(f"🌐 Intento portal: {intento+1}")
 
+            print("ANTES DRIVER.GET")
+
+            driver.execute_script("window.open('');")
+
+            driver.switch_to.window(
+                driver.window_handles[-1]
+            )
+
+            print("NUEVA PESTAÑA ABIERTA")
+
+            #driver.get(url_publicaciones)
+
+            driver.set_page_load_timeout(30)
+
             driver.get(url_publicaciones)
 
+            print("PORTAL ABIERTO")
+
+            print("DESPUES DRIVER.GET")
+
+            print("PASO 1")
+            
             time.sleep(8)
 
+            print("PASO 2")
+
             html = driver.page_source.lower()
+
+            print("PASO 3")
 
             if (
 
@@ -202,7 +226,14 @@ def consultar_publicaciones(
 
             print("❌ PORTAL NO CARGO SELECTS")
 
-            return None
+            return {
+                "fuente": "PUBLICACIONES",
+
+                "estado": "PORTAL_INDISPONIBLE",
+
+                "fecha_revision": time.strftime("%Y-%m-%d %H:%M:%S")
+
+            }                 
         
         for i, sel in enumerate(selects):
 
@@ -231,13 +262,26 @@ def consultar_publicaciones(
         )
 
         select_departamento.select_by_visible_text(
-            "BOYACÁ"
+            departamento
         )
+
+        print("PASO 4")
 
         print("✅ Departamento seleccionado")
 
-        time.sleep(5)
+        print(
+            "DEP SELECCIONADO:",
+            select_departamento.first_selected_option.text
+        )
 
+        WebDriverWait(driver, 15).until(
+            lambda d: len(
+                Select(selects[2]).options
+            ) > 1
+        )
+
+        time.sleep(5)
+       
         # ======================================
         # SELECCIONAR MUNICIPIO
         # ======================================
@@ -249,10 +293,23 @@ def consultar_publicaciones(
         )
 
         select_municipio.select_by_visible_text(
-            "TUNJA"
+            municipio
+        )
+
+        print("PASO 5")
+
+        print("✅ Municipio seleccionado")
+        
+        print(
+            "MUN SELECCIONADO:",
+            select_municipio.first_selected_option.text
         )
        
-        print("✅ Municipio seleccionado")
+        WebDriverWait(driver, 15).until(
+            lambda d: len(
+                Select(selects[5]).options
+            ) > 1
+        )        
 
         time.sleep(5)
 
@@ -284,11 +341,18 @@ def consultar_publicaciones(
         )
 
         select_especialidad.select_by_visible_text(
-            "CIVIL"
+            especialidad
         )
-        
+
+        print("PASO 6")
+
         print("✅ Especialidad seleccionada")
 
+        print(
+            "ESP SELECCIONADA:",
+            select_especialidad.first_selected_option.text
+        )
+        
         # ======================================
         # SELECCIONAR DESPACHO
         # ======================================
@@ -301,9 +365,26 @@ def consultar_publicaciones(
 
         )
 
+        print("PASO 7")
+
         select_despacho.select_by_value(
             "150013103004"
         )
+
+        print("\n===== DESPACHOS DISPONIBLES =====")
+
+        for opcion in select_despacho.options:
+
+            try:
+
+                print(
+                    opcion.get_attribute("value"),
+                    "|",
+                    opcion.text
+                )
+
+            except:
+                pass
 
         print("✅ Despacho seleccionado")
 
@@ -553,7 +634,11 @@ def consultar_publicaciones(
         
     except Exception as e:
 
-        print(f"❌ ERROR PUBLICACIONES: {e}")
+        print("❌ ERROR PUBLICACIONES")
+
+        print(type(e))
+
+        print(str(e))
 
         return None
     
