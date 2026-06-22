@@ -857,8 +857,9 @@ def extraer_detalle_publicacion(
             "a"
         )
 
+
         print(
-            f"🔗 LINKS ENCONTRADOS: {len(links)}"
+            f"📄 PDF URLS REALES: {len(pdf_urls)}"
         )
 
         print(
