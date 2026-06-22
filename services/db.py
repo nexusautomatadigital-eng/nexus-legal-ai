@@ -488,8 +488,16 @@ def save_documentos_v2(
 ):
     print("🔥 SAVE DOCUMENTOS V2")
 
-    if not documentos:
+    print("DOCUMENTOS RECIBIDOS:")
+
+    print(documentos)
+
+    if not documentos:      
+
+        print("⚠️ DOCUMENTOS VACIOS")
         return
+    
+    print("TOTAL DOCUMENTOS:", len(documentos))
 
     conn = get_connection()
 
@@ -498,6 +506,9 @@ def save_documentos_v2(
     try:
 
         for doc in documentos:
+
+            print("DEBUG DOCUMENTO:")
+            print(doc)
 
             hash_documento = generar_hash_documento(
                 numero_proceso,

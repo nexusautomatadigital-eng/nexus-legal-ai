@@ -261,6 +261,13 @@ def consultar_publicaciones(
             
         )
 
+        print("\n===== DEPARTAMENTOS DISPONIBLES =====")
+
+        for opt in select_departamento.options:
+
+            print(opt.text)
+            
+
         select_departamento.select_by_visible_text(
             departamento
         )
@@ -289,6 +296,38 @@ def consultar_publicaciones(
         select_municipio = Select(
 
            selects[2]
+
+        )
+
+        print("\n===== MUNICIPIOS DISPONIBLES =====")
+
+        for opt in select_municipio.options:
+
+            print(opt.text)
+
+        # ======================================
+        # NORMALIZAR MUNICIPIOS
+        # ======================================
+
+        MUNICIPIOS_MAP = {
+
+            "BOGOTÁ": "BOGOTÁ D.C.",
+
+        }
+
+        municipio = MUNICIPIOS_MAP.get(
+
+            municipio,
+
+            municipio
+
+        )
+
+        print(
+
+            "MUNICIPIO NORMALIZADO:",
+
+            municipio
 
         )
 
@@ -324,7 +363,17 @@ def consultar_publicaciones(
 
         )
 
-        select_entidad.select_by_value("31")
+        print("\n===== ENTIDADES DISPONIBLES =====")
+
+        for opt in select_entidad.options:
+
+            print(
+                opt.get_attribute("value"),
+                "|",
+                opt.text
+            )
+
+        #select_entidad.select_by_value("31")
 
         print("✅ Entidad seleccionada")
 
@@ -354,57 +403,65 @@ def consultar_publicaciones(
         )
         
         # ======================================
-        # SELECCIONAR DESPACHO
+        # SELECCIONAR DESPACHO DINAMICO
         # ======================================
 
         time.sleep(5)
-
+        
         select_despacho = Select(
-
             selects[5]
-
         )
 
-        print("PASO 7")
+        juzgado_busqueda = juzgado.upper()
 
-        select_despacho.select_by_value(
-            "150013103004"
+        if "(" in juzgado_busqueda:
+
+            juzgado_busqueda = (
+                juzgado_busqueda.split("(")[0]
+                .strip()
+            )
+
+        print(
+            "JUZGADO NORMALIZADO:",
+            juzgado_busqueda
         )
 
-        print("\n===== DESPACHOS DISPONIBLES =====")
+        despacho_encontrado = False
 
-        for opcion in select_despacho.options:
+        for opt in select_despacho.options:
 
-            try:
+            texto_opcion = opt.text.upper()
+
+            if juzgado_busqueda in texto_opcion:
+
+                opt.click()
+
+                despacho_encontrado = True
 
                 print(
-                    opcion.get_attribute("value"),
-                    "|",
-                    opcion.text
+                    "✅ DESPACHO ENCONTRADO:"
                 )
 
-            except:
-                pass
+                print(opt.text)
+
+                break
+
+        if not despacho_encontrado:
+
+            print(
+                "❌ NO SE ENCONTRO DESPACHO"
+            )
+
+            print(
+                "JUZGADO BUSCADO:",
+                juzgado
+            )       
+
+            return []
 
         print("✅ Despacho seleccionado")
 
-        time.sleep(5)
-
-
-        for i, sel in enumerate(selects):
-
-            try:
-
-                outer = sel.get_attribute("outerHTML")
-
-                print(f"\n========== SELECT {i} ==========\n")
-
-                print(outer[:1500])
-
-            except:
-
-                pass
-
+        time.sleep(5)             
               
         # ======================================
         # CLICK INPUT BUSCAR
@@ -435,17 +492,15 @@ def consultar_publicaciones(
 
         print(f"🔗 Links encontrados: {len(links)}")
 
-        for i, link in enumerate(links):
+        hrefs = []
+
+        for link in links:
 
             try:
 
                 texto = link.text.strip()
 
                 href = link.get_attribute("href")
-
-                # ======================================
-                # FILTRAR PUBLICACIONES REALES
-                # ======================================
 
                 if (
 
@@ -457,32 +512,43 @@ def consultar_publicaciones(
 
                 ):
 
-                    print("\n🔥 PUBLICACION ENCONTRADA")
+                    hrefs.append(href)
 
-                    print(f"TEXTO: {texto}")
+            except:
 
-                    print(f"LINK: {href}")
+                pass
 
-                    # ======================================
-                    # EXTRAER DETALLE
-                    # ======================================
+        print(
+            f"📄 PUBLICACIONES FILTRADAS: {len(hrefs)}"
+        )
 
-                    detalle = extraer_detalle_publicacion(
+        for href in hrefs:
 
-                        driver,
-                        href
+            try:
 
-                    )
+                print("\n🔥 PUBLICACION ENCONTRADA")
 
-                    print(detalle)
+                print(f"LINK: {href}")
 
-                    if not detalle:
+                detalle = extraer_detalle_publicacion(
 
-                        continue
+                    driver,
+
+                    href
+
+                )
+
+                if detalle:
 
                     publicaciones_payload.append(
                         detalle
                     )
+
+            except Exception as e:
+
+                print(
+                    f"❌ ERROR DETALLE: {e}"
+                )
 
 
                     # ======================================
@@ -791,7 +857,13 @@ def extraer_detalle_publicacion(
             "a"
         )
 
-        print(f"📄 LINKS PDF DETECTADOS: {len(pdfs)}")
+        print(
+            f"🔗 LINKS ENCONTRADOS: {len(links)}"
+        )
+
+        print(
+            f"📄 PDFS REALES: {len(pdf_urls)}"
+        )
 
         for pdf in pdfs:
 
@@ -860,6 +932,22 @@ def extraer_detalle_publicacion(
         driver.switch_to.window(
             driver.window_handles[0]
         )
+
+        print("\n===== DEBUG PDF URLS =====")
+        print("TOTAL PDF URLS:")
+        print(len(pdf_urls))
+
+
+        for pdf in pdf_urls[:10]:
+            print(pdf)
+
+        if "No hay documentos asociados" in texto:
+
+            print("🚫 PUBLICACION SIN PDF")
+
+        else:
+
+            print("✅ POSIBLE PUBLICACION CON PDF")
         
         payload = {
 
@@ -902,9 +990,9 @@ def extraer_detalle_publicacion(
                 {
 
                     "nombre": f"PUBLICACION_{article_id}",
-
-                    "url": pdf,
-
+                    "tipo_documento": "PDF_PUBLICACION",
+                    "url_publica": pdf,
+                    "publico": True,
                     "metadata": {}
 
                 }
@@ -914,6 +1002,14 @@ def extraer_detalle_publicacion(
             ]
 
         }
+
+        print("\n===== DEBUG DOCUMENTOS =====")
+
+        print(
+            len(
+                payload["documentos"]
+            )
+        )
     
         print()
         print("🔥 PAYLOAD PUBLICACIONES")

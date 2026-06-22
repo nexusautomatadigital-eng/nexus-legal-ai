@@ -28,6 +28,18 @@ from modulos.modulo_publicaciones import (
 
 def persistir_payload(payload):
 
+    print("\n🔥 PERSISTIR PAYLOAD")
+
+    print(
+        "FUENTE:",
+        payload.get("fuente")
+    )
+
+    print(
+        "NUMERO:",
+        payload.get("numero_proceso")
+    )
+
     if not payload:
 
         return None
@@ -233,7 +245,7 @@ for _, row in df.iterrows():
                     )
 
                     for payload in resultado_publicaciones:
-                        
+
 
                         persistir_payload(
                             payload

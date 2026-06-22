@@ -794,6 +794,35 @@ for _, row in df_procesos.iterrows():
 
                 print(resultado_publicaciones)
 
+                if resultado_publicaciones:
+
+                    print("\n===== PRIMER PAYLOAD =====")
+
+                    print(resultado_publicaciones[0])
+
+                    print(
+                        f"💾 PERSISTIENDO {len(resultado_publicaciones)} PUBLICACIONES"
+                    )
+
+                    for payload in resultado_publicaciones:
+
+                        try:
+
+                            persistir_payload(
+                                payload
+                            )
+
+                            print(
+                                "✅ PUBLICACION PERSISTIDA"
+                            )
+
+                        except Exception as e:
+
+                            print(
+                                f"❌ ERROR PERSISTENCIA: {e}"
+                            )                     
+
+
             except Exception as e:
 
                 print("❌ ERROR PUBLICACIONES")
