@@ -855,12 +855,7 @@ def extraer_detalle_publicacion(
         pdfs = driver.find_elements(
             By.TAG_NAME,
             "a"
-        )
-
-
-        print(
-            f"📄 PDF URLS REALES: {len(pdf_urls)}"
-        )
+        )        
 
         print(
             f"📄 PDFS REALES: {len(pdf_urls)}"
