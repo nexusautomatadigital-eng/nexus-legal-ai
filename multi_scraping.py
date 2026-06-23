@@ -867,15 +867,15 @@ for _, row in df_procesos.iterrows():
 
                 print(e)
 
-            actualizar_estado_fuente(
+                actualizar_estado_fuente(
 
-                "PUBLICACIONES",
+                    "PUBLICACIONES",
 
-                "ERROR",
+                    "ERROR",
 
-                str(e)[:500]
+                    str(e)[:500]
 
-            )
+                )
 
 
             # =====================================
