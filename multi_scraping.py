@@ -23,6 +23,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from services.health_monitor import (
+    actualizar_estado_fuente
+)
+
 # =========================================
 # MODULOS NEXUS
 # =========================================
@@ -317,6 +321,16 @@ for _, row in df_procesos.iterrows():
                 print("❌ Timeout Rama Judicial")
                 print(e)
 
+                actualizar_estado_fuente(
+
+                    "RAMA",
+
+                    "ERROR",
+
+                    f"Timeout: {str(e)[:200]}"
+
+                )
+
                 cursor.execute("""
 
                 UPDATE procesos
@@ -334,6 +348,8 @@ for _, row in df_procesos.iterrows():
                 conn.commit()
 
                 continue
+
+                
 
             driver.maximize_window()
 
@@ -595,6 +611,16 @@ for _, row in df_procesos.iterrows():
 
             print("✅ FUENTE RAMA ACTUALIZADA")
             print("ID:", proceso_id)
+
+            actualizar_estado_fuente(
+
+                "RAMA",
+
+                "OK",
+
+                f"Proceso {numero_actual} consultado"
+
+            )
         
             texto_hash = f"""
             {fecha_actuacion}
@@ -796,6 +822,18 @@ for _, row in df_procesos.iterrows():
 
                 if resultado_publicaciones:
 
+                    total_publicaciones = len(resultado_publicaciones)
+
+                    actualizar_estado_fuente(
+
+                        "PUBLICACIONES",
+
+                        "OK",
+
+                        f"{len(resultado_publicaciones)} publicaciones"
+
+                    )
+
                     print("\n===== PRIMER PAYLOAD =====")
 
                     print(resultado_publicaciones[0])
@@ -828,6 +866,16 @@ for _, row in df_procesos.iterrows():
                 print("❌ ERROR PUBLICACIONES")
 
                 print(e)
+
+            actualizar_estado_fuente(
+
+                "PUBLICACIONES",
+
+                "ERROR",
+
+                str(e)[:500]
+
+            )
 
 
             # =====================================
@@ -870,6 +918,17 @@ for _, row in df_procesos.iterrows():
                             )
                         )
                     )
+
+                    actualizar_estado_fuente(
+
+                       "SAMAI",
+
+                       "OK",
+
+                       f"Actuaciones: {len(resultado_samai.get('actuaciones', []))}"
+
+                    )
+
 
                     print(
                         "DOCUMENTOS:",
@@ -915,9 +974,17 @@ for _, row in df_procesos.iterrows():
                     "❌ ERROR SAMAI"
                 )
 
-                print(e)   
+                print(e)
 
-                     
+                actualizar_estado_fuente(
+
+                    "SAMAI",
+
+                    "ERROR",
+
+                    str(e)[:500]
+
+                )                        
             
             # =====================================
             # ENVIAR ALERTAS
