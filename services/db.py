@@ -60,12 +60,32 @@ def get_connection():
 
     try:
 
+        host = st.secrets["SUPABASE_HOST"]
+        db = st.secrets["SUPABASE_DB"]
+        user = st.secrets["SUPABASE_USER"]
+        password = st.secrets["SUPABASE_PASSWORD"]
+        port = st.secrets["SUPABASE_PORT"]
+
+        print("🔐 USANDO STREAMLIT SECRETS")
+
+    except:
+
+        host = os.getenv("DB_HOST")
+        db = os.getenv("DB_NAME")
+        user = os.getenv("DB_USER")
+        password = os.getenv("DB_PASSWORD")
+        port = os.getenv("DB_PORT")
+
+        print("🔐 USANDO VARIABLES GITHUB")
+
+    try:
+
         conn = psycopg2.connect(
-            host=st.secrets["SUPABASE_HOST"],
-            database=st.secrets["SUPABASE_DB"],
-            user=st.secrets["SUPABASE_USER"],
-            password=st.secrets["SUPABASE_PASSWORD"],
-            port=st.secrets["SUPABASE_PORT"],
+            host=host,
+            database=db,
+            user=user,
+            password=password,
+            port=port,
             sslmode="require"
         )
 
