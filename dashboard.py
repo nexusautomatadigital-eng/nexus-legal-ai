@@ -600,6 +600,66 @@ st.sidebar.info(
 )
 
 # =========================================
+# DASHBOARD EJECUTIVO
+# =========================================
+
+st.markdown("---")
+
+st.subheader("📊 Resumen Ejecutivo")
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+
+    st.metric(
+
+        "⚖️ Vigilancias",
+
+        get_total_vigilancias(
+            st.session_state.cliente_id
+        ) or 0
+
+    )
+
+with col2:
+
+    st.metric(
+
+        "🚨 Alertas",
+
+        get_total_alertas(
+            st.session_state.cliente_id
+        ) or 0
+
+    )
+
+with col3:
+
+    st.metric(
+
+        "📄 Actuaciones",
+
+        get_total_actuaciones(
+            st.session_state.cliente_id
+        ) or 0
+
+    )
+
+with col4:
+
+    st.metric(
+
+        "📎 Documentos",
+
+        get_total_documentos(
+            st.session_state.cliente_id
+        ) or 0
+
+    )
+
+
+
+# =========================================
 # CONTADOR PLAN
 # =========================================
 
