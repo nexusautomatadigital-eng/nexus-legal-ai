@@ -615,9 +615,8 @@ with col1:
 
         "⚖️ Vigilancias",
 
-        get_total_vigilancias(
-            st.session_state.cliente_id
-        ) or 0
+        get_total_vigilancias()           
+        
 
     )
 
@@ -627,9 +626,8 @@ with col2:
 
         "🚨 Alertas",
 
-        get_total_alertas(
-            st.session_state.cliente_id
-        ) or 0
+        get_total_alertas()
+            
 
     )
 
@@ -639,9 +637,8 @@ with col3:
 
         "📄 Actuaciones",
 
-        get_total_actuaciones(
-            st.session_state.cliente_id
-        ) or 0
+        get_total_actuaciones()
+            
 
     )
 
@@ -651,9 +648,8 @@ with col4:
 
         "📎 Documentos",
 
-        get_total_documentos(
-            st.session_state.cliente_id
-        ) or 0
+        get_total_documentos()
+            
 
     )
 

@@ -42,7 +42,9 @@ from modulos.modulo_samai import (
 from services.db import (
     save_proceso_v2,
     save_actuaciones_v2,
-    save_documentos_v2
+    save_documentos_v2,
+    save_vigilancia,
+    get_cliente_proceso
 )
 
 # =========================================
@@ -53,8 +55,43 @@ def persistir_payload(payload):
 
     if not payload:
         return None
+    
+    print("\n👤 BUSCANDO CLIENTE DEL PROCESO")
+
+    cliente = get_cliente_proceso(
+
+        payload.get(
+            "numero_proceso"
+
+        )
+
+    )
+
+    print("CLIENTE ENCONTRADO:")
+
+    print(cliente)
+
+    if cliente:
+
+        payload["cliente_id"] = cliente[0]
+
+        payload["plan"] = cliente[4]
+
+        payload["email"] = cliente[2]
+
+        payload["whatsapp"] = cliente[3]
 
     proceso_id = save_proceso_v2(payload)
+
+    if payload.get("cliente_id"):
+
+        save_vigilancia(
+
+            payload["cliente_id"],
+
+            proceso_id
+
+        )
 
     print(
         f"📌 PROCESO ID GENERADO: {proceso_id}"

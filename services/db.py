@@ -119,10 +119,7 @@ def get_connection():
             os.getenv("DB_HOST")
         )
 
-        raise
-
-
-    
+        raise    
 
 # ==========================================
 # SAVE PROCESO V2
@@ -212,6 +209,7 @@ def save_proceso_v2(payload):
 
         params = (
 
+            payload.get("cliente_id"),
             payload.get("numero_proceso"),
             payload.get("fuente"),   
             payload.get("jurisdiccion"),
@@ -254,6 +252,7 @@ def save_proceso_v2(payload):
 
             insert into procesos_v2 (
 
+                cliente_id,
                 numero_proceso,
                 fuente,
                 jurisdiccion,
@@ -269,6 +268,7 @@ def save_proceso_v2(payload):
 
             values (
 
+                %s,
                 %s,
                 %s,
                 %s,
@@ -683,6 +683,69 @@ def save_vigilancia(
         conn.rollback()
 
         print(f"❌ ERROR VIGILANCIA: {e}")
+
+        return None
+
+    finally:
+
+        cur.close()
+
+        conn.close()
+
+
+# ==========================================
+# GET CLIENTE PROCESO
+# ==========================================
+
+def get_cliente_proceso(
+
+    numero_proceso
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("""
+
+            SELECT
+
+                c.id,
+                c.nombre,
+                c.email,
+                c.whatsapp,
+                c.plan
+
+            FROM procesos p
+
+            JOIN clientes c
+
+                ON c.nombre = p.cliente
+
+            WHERE p.numero_proceso = %s
+
+            LIMIT 1
+
+        """, (
+
+            numero_proceso,
+
+        ))
+
+        resultado = cur.fetchone()
+
+        print("👤 CLIENTE PROCESO:")
+
+        print(resultado)
+
+        return resultado
+
+    except Exception as e:
+
+        print(f"❌ ERROR CLIENTE PROCESO: {e}")
 
         return None
 
