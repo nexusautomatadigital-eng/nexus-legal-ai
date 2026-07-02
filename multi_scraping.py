@@ -85,7 +85,19 @@ def persistir_payload(payload):
 
     proceso_id = save_proceso_v2(payload)
 
-    if payload.get("cliente_id"):
+    # ==========================================
+    # CREAR VIGILANCIA SOLO PARA EL PROCESO PADRE
+    # ==========================================
+    
+    if (
+
+        payload.get("cliente_id")
+
+        and
+
+        payload.get("fuente") != "PUBLICACIONES"
+
+    ): 
 
         save_vigilancia(
 
@@ -94,6 +106,7 @@ def persistir_payload(payload):
             proceso_id
 
         )
+   
 
     print(
         f"📌 PROCESO ID GENERADO: {proceso_id}"
