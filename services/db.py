@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import json
+import hashlib
 
 print("🚨 DB.PY VERSION 11 JUNIO 2026")
 print(__file__)
@@ -347,6 +348,183 @@ def save_proceso_v2(payload):
 
         cur.close()
 
+        conn.close()
+
+
+# ==========================================
+# SAVE PUBLICACION V2
+# ==========================================
+
+def save_publicacion_v2(
+
+    proceso_id,
+    publicacion
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    try:
+
+        metadata = publicacion.get(
+
+            "metadata",
+               
+            {}
+
+        )
+
+        article_id = str(
+
+            metadata.get(
+
+                "article_id"
+
+            )
+
+        )
+
+        hash_publicacion = hashlib.sha256(
+
+            article_id.encode()
+
+        ).hexdigest()
+
+        # -----------------------------
+        # Ya existe
+        # -----------------------------
+
+        cur.execute("""
+
+            select id
+
+            from publicaciones_v2
+
+            where hash_publicacion=%s
+
+            limit 1
+
+        """,(
+
+            hash_publicacion,
+
+        ))
+
+        existe = cur.fetchone()
+
+        if existe:
+
+            print("⚠️ PUBLICACION YA EXISTE")
+
+            return existe[0]
+        
+
+        print("\n===== DEBUG PUBLICACION V2 =====")
+
+        print("ARTICLE:", article_id)
+
+        print("FECHA PUBLICACION:", fecha_publicacion)
+
+        print("FECHA ESTADO:", fecha_estado)
+
+        print("URL:", url_publicacion)
+
+        print("HASH:", hash_publicacion)
+
+        print("PDFS:", len(publicacion.get("documentos", [])))
+
+        # -----------------------------
+        # Insert
+        # -----------------------------
+
+        cur.execute("""
+
+        insert into publicaciones_v2(
+
+            proceso_id,
+            article_id,
+            estado_numero,
+            fecha_publicacion,
+            fecha_estado,
+            despacho,
+            entidad,
+            especialidad,
+            municipio,
+            departamento,
+            resumen,
+            url_publicacion,
+            tiene_documentos,
+            cantidad_documentos,
+            metadata,
+            hash_publicacion
+
+        )
+
+        values(
+
+            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+
+        )
+
+        returning id
+
+        """,(
+
+            proceso_id,
+
+            article_id,
+
+            None,                       # estado_numero (por ahora)
+
+            fecha_publicacion,
+
+            fecha_estado,
+
+            publicacion.get("despacho"),
+
+            None,                       # entidad (por ahora)
+
+            publicacion.get("especialidad"),
+
+            None,                       # municipio (por ahora)
+
+            None,                       # departamento (por ahora)
+
+            publicacion["actuaciones"][0]["detalle"],
+
+            url_publicacion,
+
+            len(publicacion.get("documentos", [])) > 0,
+
+            len(publicacion.get("documentos", [])),
+
+            json.dumps(publicacion),
+
+            hash_publicacion
+
+        ))
+
+        publicacion_id = cur.fetchone()[0]
+
+        conn.commit()
+
+        print("✅ PUBLICACION V2 GUARDADA")
+
+        return publicacion_id
+
+    except Exception as e:
+
+        conn.rollback()
+
+        print(e)
+
+        return None
+
+    finally:
+
+        cur.close()
         conn.close()
 
 

@@ -961,7 +961,19 @@ def extraer_detalle_publicacion(
 
                 "article_id": article_id,
 
-                "fecha_publicacion": fecha_publicacion
+                "fecha_publicacion": fecha_publicacion,
+
+                "fecha_estado": fecha_publicacion,
+
+                "despacho": despacho,
+
+                "especialidad": especialidad,
+
+                "url_publicacion": url,
+
+                "hash_publicacion": hash_publicacion,
+
+                "cantidad_documentos": len(pdf_urls)
 
             },
 
