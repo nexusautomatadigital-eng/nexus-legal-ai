@@ -877,7 +877,7 @@ def save_vigilancia(
 
 def get_cliente_proceso(
 
-    numero_proceso
+   numero_proceso_padre
 
 ):
 
@@ -909,7 +909,7 @@ def get_cliente_proceso(
 
         """, (
 
-            numero_proceso,
+            numero_proceso_padre,
 
         ))
 

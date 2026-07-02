@@ -61,7 +61,9 @@ def persistir_payload(payload):
     cliente = get_cliente_proceso(
 
         payload.get(
-            "numero_proceso"
+            "numero_proceso_padre",
+
+            payload.get("numero_proceso")
 
         )
 
@@ -836,6 +838,11 @@ for _, row in df_procesos.iterrows():
                     municipio_detectado
 
                 )
+
+                for payload in resultado_publicaciones:
+
+                    payload["numero_proceso_padre"] = numero_proceso
+
 
                 print("\n===== DEBUG PUBLICACIONES =====")
 
