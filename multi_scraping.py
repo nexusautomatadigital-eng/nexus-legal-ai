@@ -723,6 +723,10 @@ for _, row in df_procesos.iterrows():
 
             }
 
+            print("\n===== PAYLOAD RAMA =====")
+            print(payload_rama)
+            print("========================\n")
+
             print("\n🔥 PERSISTIENDO RAMA V2")
 
             persistir_payload(payload_rama)
