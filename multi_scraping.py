@@ -962,6 +962,11 @@ for _, row in df_procesos.iterrows():
 
                         try:
 
+                            print("\n==============================")
+                            print("PUBLICACION A PERSISTIR")
+                            print(payload)
+                            print("==============================")
+
                             persistir_payload(
                                 payload
                             )
