@@ -962,6 +962,22 @@ for _, row in df_procesos.iterrows():
 
                         try:
 
+                            print("\n========== NUEVA PUBLICACION ==========")
+
+                            print("Numero padre:",
+                                payload.get("numero_proceso_padre"))
+
+                            print("Numero publicacion:",
+                                payload.get("numero_proceso"))
+
+                            print("Article:",
+                                payload.get("metadata", {}).get("article_id"))
+
+                            print("Fecha:",
+                                payload.get("metadata", {}).get("fecha_publicacion"))
+
+                            print("======================================")
+                            
                             print("\n==============================")
                             print("PUBLICACION A PERSISTIR")
                             print(payload)
