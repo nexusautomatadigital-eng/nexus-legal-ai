@@ -3,6 +3,7 @@ import time
 import pandas as pd
 import psycopg2
 import hashlib
+from datetime import datetime
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -673,6 +674,60 @@ for _, row in df_procesos.iterrows():
                 f"Proceso {numero_actual} consultado"
 
             )
+
+            payload_rama = {
+
+                "numero_proceso": numero_actual,
+
+                "fuente": "RAMA",
+
+                "jurisdiccion": "ORDINARIA",
+                                
+                "especialidad": especialidad_detectada,
+
+                "despacho": juzgado,
+
+                "estado_proceso": "ACTIVO",
+
+                "metadata": {
+
+                    "fecha_radicacion": fecha_radicacion,
+
+                    "demandante": demandante,
+
+                    "demandado": demandado,
+
+                    "municipio": municipio_detectado,
+
+                    "departamento": departamento_detectado,
+
+                    "fecha_consulta": str(datetime.now())
+
+                },
+
+                "actuaciones": [
+
+                    {
+
+                        "fecha_actuacion": fecha_actuacion,
+
+                        "tipo_actuacion": "ULTIMA_ACTUACION",
+
+                        "detalle": f"Demandante: {demandante} | Demandado: {demandado}"
+
+                    }
+
+                ],
+
+                "documentos": []
+
+            }
+
+            print("\n🔥 PERSISTIENDO RAMA V2")
+
+            persistir_payload(payload_rama)
+
+            print("✅ RAMA PERSISTIDA")
         
             texto_hash = f"""
             {fecha_actuacion}

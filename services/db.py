@@ -934,6 +934,58 @@ def get_cliente_proceso(
         conn.close()
 
 # ==========================================
+# GET PROCESO PADRE V2
+# ==========================================
+
+def get_proceso_padre(
+
+    numero_proceso
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("""
+
+            SELECT id
+
+            FROM procesos
+
+            WHERE numero_proceso = %s
+
+            LIMIT 1
+
+        """, (
+
+            numero_proceso,
+
+        ))
+
+        resultado = cur.fetchone()
+
+        print("📌 PROCESO PADRE:")
+
+        print(resultado)
+
+        return resultado
+
+    except Exception as e:
+
+        print(f"❌ ERROR PROCESO PADRE: {e}")
+
+        return None
+
+    finally:
+
+        cur.close()
+
+        conn.close()
+
+# ==========================================
 # GET VIGILANCIAS CLIENTE
 # ==========================================
 
