@@ -44,6 +44,7 @@ from services.db import (
     save_proceso_v2,
     save_actuaciones_v2,
     save_documentos_v2,
+    save_publicacion_v2,
     save_vigilancia,
     get_cliente_proceso,
     get_proceso_v2
@@ -993,6 +994,16 @@ for _, row in df_procesos.iterrows():
                             print("PROCESO V2 ENCONTRADO:")
 
                             print(proceso_v2)
+
+                            if proceso_v2:
+
+                                save_publicacion_v2(
+
+                                    proceso_v2[0],
+
+                                    payload
+
+                                )
 
                             persistir_payload(
                                 payload
