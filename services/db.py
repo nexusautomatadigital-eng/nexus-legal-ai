@@ -386,6 +386,18 @@ def save_publicacion_v2(
 
         )
 
+        fecha_publicacion = metadata.get(
+            "fecha_publicacion"
+        )
+
+        fecha_estado = metadata.get(
+            "fecha_estado"
+        )
+
+        url_publicacion = metadata.get(
+            "url_publicacion"
+        )        
+
         hash_publicacion = hashlib.sha256(
 
             article_id.encode()
@@ -421,6 +433,10 @@ def save_publicacion_v2(
             return existe[0]
         
 
+        # ==========================================
+        # EXTRAER METADATA
+        # ==========================================
+        
         print("\n===== DEBUG PUBLICACION V2 =====")
 
         print("ARTICLE:", article_id)
@@ -941,8 +957,7 @@ def get_proceso_padre(
 
     numero_proceso
 
-):
-
+):  
     conn = get_connection()
 
     cur = conn.cursor()
@@ -984,6 +999,58 @@ def get_proceso_padre(
         cur.close()
 
         conn.close()
+
+# ==========================================
+# GET PROCESO V2
+# ==========================================
+
+def get_proceso_v2(
+
+    numero_proceso
+
+):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("""
+
+            SELECT id
+
+            FROM procesos_v2
+
+            WHERE numero_proceso = %s
+
+            LIMIT 1
+
+        """, (
+
+            numero_proceso,
+
+        ))
+
+        resultado = cur.fetchone()
+
+        print("📌 PROCESO V2:")
+
+        print(resultado)
+
+        return resultado
+
+    except Exception as e:
+
+        print(f"❌ ERROR PROCESO V2: {e}")
+
+        return None
+
+    finally:
+
+        cur.close()
+        conn.close()
+
 
 # ==========================================
 # GET VIGILANCIAS CLIENTE

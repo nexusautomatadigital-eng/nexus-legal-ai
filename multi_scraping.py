@@ -45,7 +45,8 @@ from services.db import (
     save_actuaciones_v2,
     save_documentos_v2,
     save_vigilancia,
-    get_cliente_proceso
+    get_cliente_proceso,
+    get_proceso_v2
 )
 
 # =========================================
@@ -977,11 +978,21 @@ for _, row in df_procesos.iterrows():
                                 payload.get("metadata", {}).get("fecha_publicacion"))
 
                             print("======================================")
-                            
+
                             print("\n==============================")
                             print("PUBLICACION A PERSISTIR")
                             print(payload)
                             print("==============================")
+
+                            proceso_v2 = get_proceso_v2(
+
+                                payload.get("numero_proceso_padre")
+
+                            )
+
+                            print("PROCESO V2 ENCONTRADO:")
+
+                            print(proceso_v2)
 
                             persistir_payload(
                                 payload
