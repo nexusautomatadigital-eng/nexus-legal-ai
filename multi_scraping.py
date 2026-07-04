@@ -1007,7 +1007,7 @@ for _, row in df_procesos.iterrows():
 
                             else:
                                 print("⚠️ No existe proceso padre")
-                            )
+                            
 
                             print(
                                 "✅ PUBLICACION PERSISTIDA"
