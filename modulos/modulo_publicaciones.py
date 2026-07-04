@@ -401,8 +401,20 @@ def consultar_publicaciones(
 
         print("===============================\n")
 
+        # ======================================
+        # NORMALIZAR ESPECIALIDAD
+        # ======================================
+
+        especialidad_portal = especialidad.upper()
+
+        if especialidad_portal == "ADMINISTRATIVO":
+
+            especialidad_portal = "ADMINISTRATIVA"
+
+        print("Especialidad portal:", especialidad_portal)
+
         select_especialidad.select_by_visible_text(
-            especialidad
+            especialidad_portal
         )
 
         print("PASO 6")
