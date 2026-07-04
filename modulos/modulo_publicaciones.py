@@ -445,16 +445,25 @@ def consultar_publicaciones(
                 .strip()
             )
 
-        print(
-            "JUZGADO NORMALIZADO:",
-            juzgado_busqueda
-        )
-
+        print("JUZGADO NORMALIZADO:", juzgado_busqueda)
+        
         despacho_encontrado = False
+
+        print("\n========== DESPACHOS DISPONIBLES ==========\n")
+
+        for opt in select_despacho.options:
+
+            print(opt.text)
+
+        print("\n===========================================\n")
 
         for opt in select_despacho.options:
 
             texto_opcion = opt.text.upper()
+
+            print("COMPARANDO:")
+            print("BUSCADO :", juzgado_busqueda)
+            print("PORTAL  :", texto_opcion)
 
             if juzgado_busqueda in texto_opcion:
 
@@ -462,9 +471,7 @@ def consultar_publicaciones(
 
                 despacho_encontrado = True
 
-                print(
-                    "✅ DESPACHO ENCONTRADO:"
-                )
+                print("✅ DESPACHO ENCONTRADO:")
 
                 print(opt.text)
 
