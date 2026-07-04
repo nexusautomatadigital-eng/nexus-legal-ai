@@ -389,6 +389,18 @@ def consultar_publicaciones(
 
         )
 
+        # ======================================
+        # DEBUG OPCIONES ESPECIALIDAD
+        # ======================================
+
+        print("\n===== OPCIONES ESPECIALIDAD =====")
+
+        for opcion in select_especialidad.options:
+
+            print(opcion.text)
+
+        print("===============================\n")
+
         select_especialidad.select_by_visible_text(
             especialidad
         )
