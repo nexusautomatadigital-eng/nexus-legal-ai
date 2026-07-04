@@ -1005,8 +1005,8 @@ for _, row in df_procesos.iterrows():
 
                                 )
 
-                            persistir_payload(
-                                payload
+                            else:
+                                print("⚠️ No existe proceso padre")
                             )
 
                             print(
