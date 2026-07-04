@@ -54,7 +54,7 @@ from services.db import (
 # PERSISTENCIA NEXUS V2
 # =========================================
 
-def persistir_payload(payload):
+def persistir_proceso(payload):
 
     if not payload:
         return None
@@ -731,7 +731,7 @@ for _, row in df_procesos.iterrows():
 
             print("\n🔥 PERSISTIENDO RAMA V2")
 
-            persistir_payload(payload_rama)
+            persistir_proceso(payload_rama)
 
             print("✅ RAMA PERSISTIDA")
         
@@ -1005,14 +1005,12 @@ for _, row in df_procesos.iterrows():
 
                                 )
 
+                                print("✅ PUBLICACION REGISTRADA")
+
                             else:
+
                                 print("⚠️ No existe proceso padre")
-                            
-
-                            print(
-                                "✅ PUBLICACION PERSISTIDA"
-                            )
-
+                                                       
                         except Exception as e:
 
                             print(
@@ -1107,7 +1105,7 @@ for _, row in df_procesos.iterrows():
                         )
                     ) > 0:
 
-                        persistir_payload(
+                        persistir_proceso(
                             resultado_samai
                         )
 
