@@ -450,11 +450,36 @@ def consultar_publicaciones(
         # SELECCIONAR DESPACHO DINAMICO
         # ======================================
 
-        time.sleep(5)
-        
+        # ======================================
+        # ESPERAR DESPACHOS
+        # ======================================
+
+        print("⏳ Esperando carga de despachos...")
+
+        WebDriverWait(driver,30).until(
+
+            lambda d: len(
+
+                Select(
+
+                    d.find_elements(By.TAG_NAME,"select")[5]
+
+                ).options
+
+            ) > 1
+
+        )
+
+        selects = driver.find_elements(
+            By.TAG_NAME,
+            "select"
+        )
+
         select_despacho = Select(
             selects[5]
         )
+
+        print("✅ Despachos cargados")
 
         juzgado_busqueda = juzgado.upper()
 
