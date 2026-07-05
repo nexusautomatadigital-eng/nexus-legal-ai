@@ -456,6 +456,25 @@ def consultar_publicaciones(
 
         print("⏳ Esperando carga de despachos...")
 
+        print("\n========== SELECT DESPACHO ==========")
+
+        selects = driver.find_elements(By.TAG_NAME, "select")
+
+        print("TOTAL SELECTS:", len(selects))
+
+        for i, sel in enumerate(selects):
+
+            opciones = Select(sel).options
+
+            print(
+                f"SELECT {i} -> {len(opciones)} opciones"
+            )
+
+            for op in opciones[:10]:
+                print("   ", op.text)
+
+        print("=====================================\n")
+
         WebDriverWait(driver,30).until(
 
             lambda d: len(
