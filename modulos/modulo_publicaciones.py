@@ -755,9 +755,9 @@ def consultar_publicaciones(
 
         print(type(e))
 
-        print(str(e))
+        print(e)
 
-        return None
+        return []
     
 # ==========================================
 # EXTRAER DETALLE PUBLICACION
