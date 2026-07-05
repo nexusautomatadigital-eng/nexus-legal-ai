@@ -50,6 +50,26 @@ def consultar_publicaciones(
 
             print("ANTES DRIVER.GET")
 
+            # ======================================
+            # LIMPIAR PESTAÑAS ANTERIORES
+            # ======================================
+
+            while len(driver.window_handles) > 1:
+
+                driver.switch_to.window(
+                    driver.window_handles[-1]
+                )
+
+                print("🗑️ Cerrando pestaña anterior")
+
+                driver.close()
+
+            driver.switch_to.window(
+                driver.window_handles[0]
+            )
+
+            print("✅ Solo queda la pestaña principal")
+
             driver.execute_script("window.open('');")
 
             driver.switch_to.window(
