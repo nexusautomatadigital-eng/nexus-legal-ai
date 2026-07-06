@@ -443,29 +443,23 @@ def consultar_publicaciones(
             selects[4].get_attribute("onchange")
         )
 
+        driver.execute_script("""
+        cargarOpciones('especialidad', arguments[0].value); 
+        """, selects[4])
+
+        resultado = driver.execute_script("""
+        return typeof cargarOpciones;
+        """)
+
+        print("FUNCION cargarOpciones:", resultado)
+
         print("ONCHANGE DESPACHO:")
 
         print(
             selects[5].get_attribute("onchange")
         )
 
-        driver.execute_script("""
-        arguments[0].dispatchEvent(
-            new Event('change', {bubbles:true})
-        );
-        """, selects[4])
-
-        driver.execute_script("""
-        arguments[0].dispatchEvent(
-            new Event('input', {bubbles:true})
-        );
-        """, selects[4])
-
-        driver.execute_script("""
-        arguments[0].blur();
-        """, selects[4]) 
-
-        time.sleep(2)               
+        time.sleep(2)
 
         print("PASO 6")
 
