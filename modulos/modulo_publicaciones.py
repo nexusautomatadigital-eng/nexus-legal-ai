@@ -437,6 +437,36 @@ def consultar_publicaciones(
             especialidad_portal
         )
 
+        print("ONCHANGE ESPECIALIDAD:")
+
+        print(
+            selects[4].get_attribute("onchange")
+        )
+
+        print("ONCHANGE DESPACHO:")
+
+        print(
+            selects[5].get_attribute("onchange")
+        )
+
+        driver.execute_script("""
+        arguments[0].dispatchEvent(
+            new Event('change', {bubbles:true})
+        );
+        """, selects[4])
+
+        driver.execute_script("""
+        arguments[0].dispatchEvent(
+            new Event('input', {bubbles:true})
+        );
+        """, selects[4])
+
+        driver.execute_script("""
+        arguments[0].blur();
+        """, selects[4]) 
+
+        time.sleep(2)               
+
         print("PASO 6")
 
         print("✅ Especialidad seleccionada")
@@ -456,9 +486,14 @@ def consultar_publicaciones(
 
         print("⏳ Esperando carga de despachos...")
 
-        print("\n========== SELECT DESPACHO ==========")
+        time.sleep(2)
 
-        selects = driver.find_elements(By.TAG_NAME, "select")
+        selects = driver.find_elements(
+            By.TAG_NAME,
+            "select"
+        )
+
+        print("\n========== SELECT DESPACHO ==========")
 
         print("TOTAL SELECTS:", len(selects))
 
@@ -466,11 +501,10 @@ def consultar_publicaciones(
 
             opciones = Select(sel).options
 
-            print(
-                f"SELECT {i} -> {len(opciones)} opciones"
-            )
+            print(f"SELECT {i} -> {len(opciones)} opciones")
 
             for op in opciones[:10]:
+
                 print("   ", op.text)
 
         print("=====================================\n")
