@@ -188,6 +188,30 @@ def consultar_publicaciones(
 
         print(f"🪟 Iframes encontrados: {len(iframes)}")
 
+        # ======================================
+        # DEBUG FUNCION JAVASCRIPT
+        # ======================================
+
+        try:
+
+            codigo = driver.execute_script("""
+
+                return cargarOpciones.toString();
+
+            """)
+
+            print("\n===== FUNCION cargarOpciones =====")
+
+            print(codigo[:2000])      # Solo los primeros 2000 caracteres
+
+            print("===============================\n")
+
+        except Exception as e:
+
+            print("❌ No fue posible leer cargarOpciones")
+
+            print(e)
+
               
         # ======================================
         # DEBUG DIVS
@@ -433,8 +457,21 @@ def consultar_publicaciones(
 
         print("Especialidad portal:", especialidad_portal)
 
+        print("VALUE ANTES:")
+
+        print( 
+            selects[4].get_attribute("value") 
+            
+        )
+
         select_especialidad.select_by_visible_text(
             especialidad_portal
+        )
+
+        print("VALUE DESPUES:")
+
+        print(
+            selects[4].get_attribute("value")
         )
 
         print("ONCHANGE ESPECIALIDAD:")
@@ -443,15 +480,17 @@ def consultar_publicaciones(
             selects[4].get_attribute("onchange")
         )
 
-        driver.execute_script("""
-        cargarOpciones('especialidad', arguments[0].value); 
-        """, selects[4])
-
         resultado = driver.execute_script("""
         return typeof cargarOpciones;
         """)
 
         print("FUNCION cargarOpciones:", resultado)
+
+        driver.execute_script("""
+        cargarOpciones('especialidad', arguments[0].value);
+        """, selects[4])    
+
+        print("✅ cargarOpciones ejecutada")                                       
 
         print("ONCHANGE DESPACHO:")
 
