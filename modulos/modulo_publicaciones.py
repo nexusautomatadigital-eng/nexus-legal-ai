@@ -516,20 +516,39 @@ def consultar_publicaciones(
 
         print(
             "ESP SELECCIONADA:",
-            select_especialidad.first_selected_option.text
+            select_especialidad.first_selected_option.text            
         )
-        
+
         # ======================================
-        # SELECCIONAR DESPACHO DINAMICO
+        # DEBUG FORMULARIO
         # ======================================
 
+        print("\n========== VALORES DEL FORMULARIO ==========\n")
+
+        print("Departamento :", Select(selects[1]).first_selected_option.text)
+        print("Municipio    :", Select(selects[2]).first_selected_option.text)
+        print("Entidad      :", Select(selects[3]).first_selected_option.text)
+        print("Especialidad :", Select(selects[4]).first_selected_option.text)
+
+        print()
+
+        print("VALUE DEP:", selects[1].get_attribute("value"))
+        print("VALUE MUN:", selects[2].get_attribute("value"))
+        print("VALUE ENT:", selects[3].get_attribute("value"))
+        print("VALUE ESP:", selects[4].get_attribute("value"))
+
+        print("\n===========================================\n")
+        
+        
         # ======================================
         # ESPERAR DESPACHOS
         # ======================================
 
         print("⏳ Esperando carga de despachos...")
 
-        time.sleep(2)
+        WebDriverWait(driver, 5).until(
+            lambda d: len(d.find_elements(By.TAG_NAME, "select")) >= 6
+        )
 
         selects = driver.find_elements(
             By.TAG_NAME,
