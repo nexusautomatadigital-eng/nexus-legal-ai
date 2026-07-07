@@ -200,6 +200,8 @@ def consultar_publicaciones(
 
             """)
 
+            print(codigo)
+
             print("\n===== FUNCION cargarOpciones =====")
 
             print(codigo[:2000])      # Solo los primeros 2000 caracteres
