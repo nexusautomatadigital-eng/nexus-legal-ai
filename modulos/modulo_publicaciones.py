@@ -422,8 +422,16 @@ def consultar_publicaciones(
         # --------------------------------------
         # DETECTAR ENTIDAD
         # --------------------------------------
+        
+        print("\n========== JUZGADO RECIBIDO ==========")
+        print(repr(juzgado))
+        print("======================================")
 
         juzgado_upper = juzgado.upper()
+
+        print("\n========== JUZGADO UPPER ==========")
+        print(repr(juzgado_upper))
+        print("===================================")
 
         print("\n========== JUZGADO ORIGINAL ==========")
         print(juzgado)
@@ -435,17 +443,25 @@ def consultar_publicaciones(
 
         if "TRIBUNAL ADMINISTRATIVO" in juzgado_upper:
 
+            print("ENTRO: TRIBUNAL ADMINISTRATIVO")
+
             entidad = "TRIBUNAL ADMINISTRATIVO"
 
         elif "JUZGADO ADMINISTRATIVO" in juzgado_upper:
+
+            print("ENTRO: JUZGADO ADMINISTRATIVO")
 
             entidad = "JUZGADO ADMINISTRATIVO"
 
         elif "TRIBUNAL SUPERIOR" in juzgado_upper:
 
+            print("ENTRO: TRIBUNAL SUPERIOR")
+
             entidad = "TRIBUNAL SUPERIOR"
 
         elif "JUZGADO" in juzgado_upper and "CIRCUITO" in juzgado_upper:
+
+            print("ENTRO: JUZGADO DE CIRCUITO")
 
             entidad = "JUZGADO DE CIRCUITO"
 
