@@ -482,11 +482,19 @@ def consultar_publicaciones(
             selects[4].get_attribute("onchange")
         )
 
-        resultado = driver.execute_script("""
-        return typeof cargarOpciones;
+        # ======================================
+        # IMPRIMIR CODIGO DE LA FUNCION
+        # ======================================
+
+        codigo = driver.execute_script("""
+        return cargarOpciones.toString();
         """)
 
-        print("FUNCION cargarOpciones:", resultado)
+        print("\n========== CODIGO cargarOpciones ==========\n")
+
+        print(codigo)
+
+        print("\n===========================================\n")
 
         driver.execute_script("""
         cargarOpciones('especialidad', arguments[0].value);
@@ -500,7 +508,7 @@ def consultar_publicaciones(
             selects[5].get_attribute("onchange")
         )
 
-        time.sleep(2)
+        time.sleep(5)
 
         print("PASO 6")
 
