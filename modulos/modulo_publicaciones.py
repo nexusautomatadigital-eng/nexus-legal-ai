@@ -425,6 +425,14 @@ def consultar_publicaciones(
 
         juzgado_upper = juzgado.upper()
 
+        print("\n========== JUZGADO ORIGINAL ==========")
+        print(juzgado)
+        print("=====================================\n")
+
+        print("\n========== JUZGADO UPPER ==========")
+        print(juzgado_upper)
+        print("===================================\n")
+
         if "TRIBUNAL ADMINISTRATIVO" in juzgado_upper:
 
             entidad = "TRIBUNAL ADMINISTRATIVO"
