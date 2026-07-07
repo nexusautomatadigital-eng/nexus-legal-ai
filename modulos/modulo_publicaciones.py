@@ -396,9 +396,9 @@ def consultar_publicaciones(
             ) > 1
         )        
 
-        time.sleep(5)
+        time.sleep(5)      
 
-
+        
         # ======================================
         # SELECCIONAR ENTIDAD
         # ======================================
@@ -419,21 +419,55 @@ def consultar_publicaciones(
                 opt.text
             )
 
-        #select_entidad.select_by_value("31")
+        # --------------------------------------
+        # DETECTAR ENTIDAD
+        # --------------------------------------
 
-        print("✅ Entidad seleccionada")
+        juzgado_upper = juzgado.upper()
 
-        time.sleep(5)
+        if "TRIBUNAL ADMINISTRATIVO" in juzgado_upper:
+
+            entidad = "TRIBUNAL ADMINISTRATIVO"
+
+        elif "JUZGADO ADMINISTRATIVO" in juzgado_upper:
+
+            entidad = "JUZGADO ADMINISTRATIVO"
+
+        elif "TRIBUNAL SUPERIOR" in juzgado_upper:
+
+            entidad = "TRIBUNAL SUPERIOR"
+
+        elif "JUZGADO" in juzgado_upper and "CIRCUITO" in juzgado_upper:
+
+            entidad = "JUZGADO DE CIRCUITO"
+
+        elif "JUZGADO MUNICIPAL" in juzgado_upper:
+
+            entidad = "JUZGADO MUNICIPAL"
+
+        else:
+
+            entidad = "JUZGADO DE CIRCUITO"
+
+        print("ENTIDAD DETECTADA:", entidad)
+
+        select_entidad.select_by_visible_text(entidad)
+
+        print(
+            "ENTIDAD SELECCIONADA:",
+            select_entidad.first_selected_option.text
+        )
+
+        time.sleep(3)
 
         # ======================================
         # SELECCIONAR ESPECIALIDAD
         # ======================================
 
         select_especialidad = Select(
-
             selects[4]
-
         )
+
 
         # ======================================
         # DEBUG OPCIONES ESPECIALIDAD
