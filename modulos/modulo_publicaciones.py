@@ -441,23 +441,29 @@ def consultar_publicaciones(
         print(juzgado_upper)
         print("===================================\n")
 
-        if "TRIBUNAL ADMINISTRATIVO" in juzgado_upper:
+        if "TRIBUNAL" in juzgado_upper and "ADMINISTRATIVO" in juzgado_upper:
 
             print("ENTRO: TRIBUNAL ADMINISTRATIVO")
 
             entidad = "TRIBUNAL ADMINISTRATIVO"
 
-        elif "JUZGADO ADMINISTRATIVO" in juzgado_upper:
+        elif "JUZGADO" in juzgado_upper and "ADMINISTRATIVO" in juzgado_upper:
 
             print("ENTRO: JUZGADO ADMINISTRATIVO")
 
             entidad = "JUZGADO ADMINISTRATIVO"
 
-        elif "TRIBUNAL SUPERIOR" in juzgado_upper:
+        elif "TRIBUNAL" in juzgado_upper and "SUPERIOR" in juzgado_upper:
 
             print("ENTRO: TRIBUNAL SUPERIOR")
 
             entidad = "TRIBUNAL SUPERIOR"
+
+        elif "JUZGADO" in juzgado_upper and "MUNICIPAL" in juzgado_upper:
+
+            print("ENTRO: JUZGADO MUNICIPAL")
+
+            entidad = "JUZGADO MUNICIPAL"
 
         elif "JUZGADO" in juzgado_upper and "CIRCUITO" in juzgado_upper:
 
@@ -465,11 +471,9 @@ def consultar_publicaciones(
 
             entidad = "JUZGADO DE CIRCUITO"
 
-        elif "JUZGADO MUNICIPAL" in juzgado_upper:
-
-            entidad = "JUZGADO MUNICIPAL"
-
         else:
+
+            print("⚠️ ENTIDAD NO IDENTIFICADA")
 
             entidad = "JUZGADO DE CIRCUITO"
 
