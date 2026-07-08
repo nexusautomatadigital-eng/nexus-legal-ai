@@ -14,6 +14,8 @@ from selenium.webdriver.support.ui import Select
 
 from selenium.webdriver.support import expected_conditions as EC
 
+from selenium.common.exceptions import TimeoutException
+
 
 # ==========================================
 # CONSULTAR PUBLICACIONES
@@ -633,28 +635,71 @@ def consultar_publicaciones(
 
         print("=====================================\n")
 
-        WebDriverWait(driver,30).until(
+        try:
+        
+            WebDriverWait(driver,30).until(
 
-            lambda d: len(
+                lambda d: len(
 
-                Select(
+                    Select(
 
-                    d.find_elements(By.TAG_NAME,"select")[5]
+                        d.find_elements(By.TAG_NAME,"select")[5]
 
-                ).options
+                    ).options
 
-            ) > 1
+                ) > 1
 
-        )
+            )
 
+        except TimeoutException:        
+
+            print()
+            print("======================================")
+            print("⚠️ PORTAL PUBLICACIONES SIN DESPACHOS")
+            print("======================================")
+            print("Departamento :", departamento)
+            print("Municipio    :", municipio)
+            print("Entidad      :", entidad)
+            print("Especialidad :", especialidad)
+            print("Proceso      :", juzgado)
+            print()
+            
+            return {
+
+                "fuente": "PUBLICACIONES",
+                "estado": "SIN_DESPACHOS",
+                "detalle": "El portal no devolvió despachos para los filtros seleccionados."
+
+            }
+        
         selects = driver.find_elements(
             By.TAG_NAME,
             "select"
         )
 
-        select_despacho = Select(
-            selects[5]
-        )
+        select_despacho = Select(selects[5])
+
+        if len(select_despacho.options) <= 1:
+
+            print()
+            print("======================================")
+            print("⚠️ PORTAL PUBLICACIONES SIN DESPACHOS")
+            print("======================================")
+            print("Departamento :", departamento)
+            print("Municipio    :", municipio)
+            print("Entidad      :", entidad)
+            print("Especialidad :", especialidad)
+            print("Proceso      :", juzgado)
+            print()
+
+            return {
+
+                "fuente": "PUBLICACIONES",
+                "estado": "SIN_DESPACHOS",
+                "detalle": "El portal no devolvió despachos para los filtros seleccionados."
+
+            }
+
 
         print("✅ Despachos cargados")
 
@@ -683,9 +728,9 @@ def consultar_publicaciones(
 
             texto_opcion = opt.text.upper()
 
-            print("COMPARANDO:")
-            print("BUSCADO :", juzgado_busqueda)
-            print("PORTAL  :", texto_opcion)
+            #print("COMPARANDO:")
+            #print("BUSCADO :", juzgado_busqueda)
+            #print("PORTAL  :", texto_opcion)
 
             if juzgado_busqueda in texto_opcion:
 
@@ -701,16 +746,22 @@ def consultar_publicaciones(
 
         if not despacho_encontrado:
 
-            print(
-                "❌ NO SE ENCONTRO DESPACHO"
-            )
+            print("❌ NO SE ENCONTRO DESPACHO")
 
             print(
                 "JUZGADO BUSCADO:",
                 juzgado
             )       
 
-            return []
+            return {
+
+                "fuente": "PUBLICACIONES",
+
+                "estado": "DESPACHO_NO_ENCONTRADO",
+
+                "detalle": juzgado
+
+            }
 
         print("✅ Despacho seleccionado")
 
