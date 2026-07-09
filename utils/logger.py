@@ -1,10 +1,6 @@
 import logging
 import os
 
-# =====================================
-# CONFIGURACION
-# =====================================
-
 os.makedirs("logs", exist_ok=True)
 
 logging.basicConfig(
@@ -19,52 +15,64 @@ logging.basicConfig(
     ]
 )
 
-logger = logging.getLogger("NEXUS")
+app_logger = logging.getLogger("NEXUS")
 
 DEBUG = False
-
-
-# =====================================
-# FUNCIONES
-# =====================================
-
-def info(msg):
-
-    logger.info(msg)
-
-
-def success(msg):
-
-    logger.info("✅ " + str(msg))
-
-
-def warning(msg):
-
-    logger.warning("⚠ " + str(msg))
-
-
-def error(msg):
-
-    logger.error("❌ " + str(msg))
-
-
-def exception(e):
-
-    logger.exception(e)
 
 
 def header(title):
 
     linea = "=" * 60
 
-    logger.info("")
-    logger.info(linea)
-    logger.info("🚀 " + str(title))
-    logger.info(linea)
+    print()
+
+    print(linea)
+
+    print(f"🚀 {title}")
+
+    print(linea)
+
+    app_logger.info(f"===== {title} =====")
+
+
+def info(msg):
+
+    print(f"ℹ {msg}")
+
+    app_logger.info(msg)
+
+
+def success(msg):
+
+    print(f"✅ {msg}")
+
+    app_logger.info(msg)
+
+
+def warning(msg):
+
+    print(f"⚠ {msg}")
+
+    app_logger.warning(msg)
+
+
+def error(msg):
+
+    print(f"❌ {msg}")
+
+    app_logger.error(msg)
 
 
 def debug(*args):
 
     if DEBUG:
 
-        logger.debug(" ".join(map(str, args)))
+        print("🐞", *args)
+
+        app_logger.debug(" ".join(str(x) for x in args))
+
+def exception(e):
+
+    print(f"💥 {e}")
+
+    app_logger.exception(e)

@@ -169,7 +169,7 @@ load_dotenv()
 # CONFIG
 # =========================================
 
-print("\n🚀 INICIANDO NEXUS ENGINE\n")
+header("INICIANDO NEXUS ENGINE")
 
 # =========================================
 # VARIABLES ENTORNO DB
@@ -730,7 +730,7 @@ for _, row in df_procesos.iterrows():
             print(payload_rama)
             print("========================\n")
 
-            print("\n🔥 PERSISTIENDO RAMA V2")
+            header("PERSISTIENDO RAMA V2")
 
             persistir_proceso(payload_rama)
 
@@ -896,7 +896,7 @@ for _, row in df_procesos.iterrows():
 
             try:
 
-                logger.header("CONSULTANDO PUBLICACIONES")
+                header("CONSULTANDO PUBLICACIONES")
 
                 resultado_publicaciones = consultar_publicaciones(
 
@@ -922,7 +922,7 @@ for _, row in df_procesos.iterrows():
 
                 elif isinstance(resultado_publicaciones, dict):
 
-                    logger.warning("Estado Publicaciones")
+                    warning("Estado Publicaciones")
 
                     print("Fuente :", resultado_publicaciones.get("fuente"))
 
@@ -940,21 +940,21 @@ for _, row in df_procesos.iterrows():
 
                     )
 
-                logger.header("DEBUG PUBLICACIONES")
+                header("DEBUG PUBLICACIONES")
 
                 if resultado_publicaciones:
 
-                    logger.info(type(resultado_publicaciones))
+                    info(type(resultado_publicaciones))
 
                     if isinstance(resultado_publicaciones, list):
                         print("TOTAL:", len(resultado_publicaciones))
 
                     else:
-                        logger.info(resultado_publicaciones)
+                        info(resultado_publicaciones)
 
                 else:
 
-                    logger.warning("PUBLICACIONES VACIAS")
+                    warning("PUBLICACIONES VACIAS")
 
                 if isinstance(resultado_publicaciones, list) and resultado_publicaciones:
 
@@ -970,11 +970,11 @@ for _, row in df_procesos.iterrows():
 
                     )
 
-                    logger.header("PRIMER PAYLOAD")
+                    header("PRIMER PAYLOAD")
 
-                    logger.info(resultado_publicaciones[0])
+                    info(resultado_publicaciones[0])
 
-                    logger.success(
+                    success(
                         f"PERSISTIENDO {len(resultado_publicaciones)} PUBLICACIONES"
                     )
 
@@ -982,15 +982,15 @@ for _, row in df_procesos.iterrows():
 
                         try:
 
-                            logger.header("NUEVA PUBLICACION")
+                            header("NUEVA PUBLICACION")
 
-                            logger.info(f"Proceso Padre : {payload.get('numero_proceso_padre')}")
+                            info(f"Proceso Padre : {payload.get('numero_proceso_padre')}")
 
-                            logger.info(f"Publicación   : {payload.get('numero_proceso')}")
+                            info(f"Publicación   : {payload.get('numero_proceso')}")
 
-                            logger.info(f"Artículo      : {payload.get('metadata', {}).get('article_id')}")
+                            info(f"Artículo      : {payload.get('metadata', {}).get('article_id')}")
 
-                            logger.info(f"Fecha         : {payload.get('metadata', {}).get('fecha_publicacion')}")
+                            info(f"Fecha         : {payload.get('metadata', {}).get('fecha_publicacion')}")
                             
                             print("======================================")
 
@@ -1005,9 +1005,9 @@ for _, row in df_procesos.iterrows():
 
                             )
 
-                            logger.info("PROCESO V2 ENCONTRADO")
+                            info("PROCESO V2 ENCONTRADO")
 
-                            logger.info(proceso_v2)
+                            info(proceso_v2)
 
                             if proceso_v2:
 
@@ -1019,22 +1019,22 @@ for _, row in df_procesos.iterrows():
 
                                 )
 
-                                logger.success("PUBLICACION REGISTRADA")
+                                success("PUBLICACION REGISTRADA")
 
                             else:
 
-                                logger.warning("No existe proceso padre")
+                                warning("No existe proceso padre")
                                                        
                         except Exception as e:
 
-                            logger.exception(e)
+                            exception(e)
 
 
             except Exception as e:
 
-                logger.error("ERROR PUBLICACIONES")
+                error("ERROR PUBLICACIONES")
 
-                logger.exception(e)
+                exception(e)
 
                 actualizar_estado_fuente(
 
@@ -1053,7 +1053,7 @@ for _, row in df_procesos.iterrows():
 
             try:
 
-                print("🔎 CONSULTANDO SAMAI")
+                header("CONSULTANDO SAMAI")
 
                 resultado_samai = consultar_samai(
 
