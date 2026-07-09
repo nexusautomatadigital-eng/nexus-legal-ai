@@ -3,6 +3,7 @@ import time
 import pandas as pd
 import psycopg2
 import hashlib
+from utils.logger import *
 from datetime import datetime
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -895,7 +896,7 @@ for _, row in df_procesos.iterrows():
 
             try:
 
-                print("🔎 CONSULTANDO PUBLICACIONES")
+                logger.header("CONSULTANDO PUBLICACIONES")
 
                 resultado_publicaciones = consultar_publicaciones(
 
@@ -913,32 +914,49 @@ for _, row in df_procesos.iterrows():
 
                 )
 
-                for payload in resultado_publicaciones:
+                if isinstance(resultado_publicaciones, list):
 
-                    payload["numero_proceso_padre"] = numero_proceso
+                    for payload in resultado_publicaciones:
 
+                        payload["numero_proceso_padre"] = numero_proceso
 
-                print("\n===== DEBUG PUBLICACIONES =====")
+                elif isinstance(resultado_publicaciones, dict):
+
+                    logger.warning("Estado Publicaciones")
+
+                    print("Fuente :", resultado_publicaciones.get("fuente"))
+
+                    print("Estado :", resultado_publicaciones.get("estado"))
+
+                    print("Detalle:", resultado_publicaciones.get("detalle"))
+
+                    actualizar_estado_fuente(
+
+                        "PUBLICACIONES",
+
+                        resultado_publicaciones.get("estado"),
+
+                        resultado_publicaciones.get("detalle")
+
+                    )
+
+                logger.header("DEBUG PUBLICACIONES")
 
                 if resultado_publicaciones:
 
-                    print(type(resultado_publicaciones))
+                    logger.info(type(resultado_publicaciones))
 
                     if isinstance(resultado_publicaciones, list):
                         print("TOTAL:", len(resultado_publicaciones))
 
                     else:
-                        print(resultado_publicaciones)
+                        logger.info(resultado_publicaciones)
 
                 else:
 
-                    print("PUBLICACIONES VACIO")
+                    logger.warning("PUBLICACIONES VACIAS")
 
-                print("RESULTADO PUBLICACIONES")
-
-                print(resultado_publicaciones)
-
-                if resultado_publicaciones:
+                if isinstance(resultado_publicaciones, list) and resultado_publicaciones:
 
                     total_publicaciones = len(resultado_publicaciones)
 
@@ -952,32 +970,28 @@ for _, row in df_procesos.iterrows():
 
                     )
 
-                    print("\n===== PRIMER PAYLOAD =====")
+                    logger.header("PRIMER PAYLOAD")
 
-                    print(resultado_publicaciones[0])
+                    logger.info(resultado_publicaciones[0])
 
-                    print(
-                        f"💾 PERSISTIENDO {len(resultado_publicaciones)} PUBLICACIONES"
+                    logger.success(
+                        f"PERSISTIENDO {len(resultado_publicaciones)} PUBLICACIONES"
                     )
 
                     for payload in resultado_publicaciones:
 
                         try:
 
-                            print("\n========== NUEVA PUBLICACION ==========")
+                            logger.header("NUEVA PUBLICACION")
 
-                            print("Numero padre:",
-                                payload.get("numero_proceso_padre"))
+                            logger.info(f"Proceso Padre : {payload.get('numero_proceso_padre')}")
 
-                            print("Numero publicacion:",
-                                payload.get("numero_proceso"))
+                            logger.info(f"Publicación   : {payload.get('numero_proceso')}")
 
-                            print("Article:",
-                                payload.get("metadata", {}).get("article_id"))
+                            logger.info(f"Artículo      : {payload.get('metadata', {}).get('article_id')}")
 
-                            print("Fecha:",
-                                payload.get("metadata", {}).get("fecha_publicacion"))
-
+                            logger.info(f"Fecha         : {payload.get('metadata', {}).get('fecha_publicacion')}")
+                            
                             print("======================================")
 
                             print("\n==============================")
@@ -991,9 +1005,9 @@ for _, row in df_procesos.iterrows():
 
                             )
 
-                            print("PROCESO V2 ENCONTRADO:")
+                            logger.info("PROCESO V2 ENCONTRADO")
 
-                            print(proceso_v2)
+                            logger.info(proceso_v2)
 
                             if proceso_v2:
 
@@ -1005,24 +1019,22 @@ for _, row in df_procesos.iterrows():
 
                                 )
 
-                                print("✅ PUBLICACION REGISTRADA")
+                                logger.success("PUBLICACION REGISTRADA")
 
                             else:
 
-                                print("⚠️ No existe proceso padre")
+                                logger.warning("No existe proceso padre")
                                                        
                         except Exception as e:
 
-                            print(
-                                f"❌ ERROR PERSISTENCIA: {e}"
-                            )                     
+                            logger.exception(e)
 
 
             except Exception as e:
 
-                print("❌ ERROR PUBLICACIONES")
+                logger.error("ERROR PUBLICACIONES")
 
-                print(e)
+                logger.exception(e)
 
                 actualizar_estado_fuente(
 
