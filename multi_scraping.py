@@ -726,9 +726,9 @@ for _, row in df_procesos.iterrows():
 
             }
 
-            print("\n===== PAYLOAD RAMA =====")
-            print(payload_rama)
-            print("========================\n")
+            debug("\n===== PAYLOAD RAMA =====")
+            debug(payload_rama)
+            debug("========================\n")
 
             header("PERSISTIENDO RAMA V2")
 
@@ -992,12 +992,12 @@ for _, row in df_procesos.iterrows():
 
                             info(f"Fecha         : {payload.get('metadata', {}).get('fecha_publicacion')}")
                             
-                            print("======================================")
+                            debug("======================================")
 
-                            print("\n==============================")
-                            print("PUBLICACION A PERSISTIR")
-                            print(payload)
-                            print("==============================")
+                            debug("\n==============================")
+                            debug("PUBLICACION A PERSISTIR")
+                            debug(payload)
+                            debug("==============================")
 
                             proceso_v2 = get_proceso_v2(
 
