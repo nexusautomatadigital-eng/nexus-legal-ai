@@ -1,6 +1,9 @@
 import logging
 import os
 
+from core.settings import Settings
+from core.constants import *
+
 os.makedirs("logs", exist_ok=True)
 
 logging.basicConfig(
@@ -17,8 +20,6 @@ logging.basicConfig(
 
 app_logger = logging.getLogger("NEXUS")
 
-DEBUG = False
-
 
 def header(title):
 
@@ -28,7 +29,7 @@ def header(title):
 
     print(linea)
 
-    print(f"🚀 {title}")
+    print(f"{ICON_INFO} {title}")
 
     print(linea)
 
@@ -37,42 +38,46 @@ def header(title):
 
 def info(msg):
 
-    print(f"ℹ {msg}")
+    print(f"{ICON_INFO} {msg}")
 
     app_logger.info(msg)
 
 
 def success(msg):
 
-    print(f"✅ {msg}")
+    print(f"{ICON_OK} {msg}")
 
     app_logger.info(msg)
 
 
 def warning(msg):
 
-    print(f"⚠ {msg}")
+    print(f"{ICON_INFO} {msg}")
 
     app_logger.warning(msg)
 
 
 def error(msg):
 
-    print(f"❌ {msg}")
+    print(f"{ICON_INFO} {msg}")
 
     app_logger.error(msg)
 
 
 def debug(*args):
 
-    if DEBUG:
+    if Settings.DEBUG:
 
-        print("🐞", *args)
+        print("{ICON_INFO}", *args)
 
         app_logger.debug(" ".join(str(x) for x in args))
 
 def exception(e):
 
-    print(f"💥 {e}")
+    app_logger.exception(e)
+
+def exception(e):
+
+    print(f"{ICON_INFO} {e}")
 
     app_logger.exception(e)

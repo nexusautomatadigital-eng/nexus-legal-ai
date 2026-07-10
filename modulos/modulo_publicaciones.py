@@ -12,9 +12,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from selenium.webdriver.support.ui import Select
 
+from utils.logger import *
+
 from selenium.webdriver.support import expected_conditions as EC
 
 from selenium.common.exceptions import TimeoutException
+
+from core.settings import Settings
+    
 
 
 # ==========================================
@@ -90,15 +95,15 @@ def consultar_publicaciones(
 
             print("DESPUES DRIVER.GET")
 
-            print("PASO 1")
+            debug("PASO 1")
             
             time.sleep(8)
 
-            print("PASO 2")
+            debug("PASO 2")
 
             html = driver.page_source.lower()
 
-            print("PASO 3")
+            debug("PASO 3")
 
             if (
 
@@ -320,7 +325,7 @@ def consultar_publicaciones(
             departamento
         )
 
-        print("PASO 4")
+        debug("PASO 4")
 
         print("✅ Departamento seleccionado")
 
@@ -329,7 +334,7 @@ def consultar_publicaciones(
             select_departamento.first_selected_option.text
         )
 
-        WebDriverWait(driver, 15).until(
+        WebDriverWait(driver, Settings.WAIT_MEDIUM).until(
             lambda d: len(
                 Select(selects[2]).options
             ) > 1
@@ -383,7 +388,7 @@ def consultar_publicaciones(
             municipio
         )
 
-        print("PASO 5")
+        debug("PASO 5")
 
         print("✅ Municipio seleccionado")
         
@@ -392,7 +397,7 @@ def consultar_publicaciones(
             select_municipio.first_selected_option.text
         )
        
-        WebDriverWait(driver, 15).until(
+        WebDriverWait(driver, Settings.WAIT_MEDIUM).until(
             lambda d: len(
                 Select(selects[5]).options
             ) > 1
@@ -523,26 +528,21 @@ def consultar_publicaciones(
 
         print("Especialidad portal:", especialidad_portal)
 
-        print("VALUE ANTES:")
+        debug("VALUE ANTES:")
 
-        print( 
-            selects[4].get_attribute("value") 
-            
-        )
+        debug(selects[4].get_attribute("value"))
 
         select_especialidad.select_by_visible_text(
             especialidad_portal
         )
 
-        print("VALUE DESPUES:")
+        debug("VALUE DESPUES:")
 
-        print(
-            selects[4].get_attribute("value")
-        )
+        debug(selects[4].get_attribute("value"))
 
-        print("ONCHANGE ESPECIALIDAD:")
+        debug("ONCHANGE ESPECIALIDAD:")
 
-        print(
+        debug(
             selects[4].get_attribute("onchange")
         )
 
@@ -558,7 +558,7 @@ def consultar_publicaciones(
 
         print(codigo)
 
-        print("\n===========================================\n")
+        debug("\n===========================================\n")
 
         driver.execute_script("""
         cargarOpciones('especialidad', arguments[0].value);
@@ -566,7 +566,7 @@ def consultar_publicaciones(
 
         print("✅ cargarOpciones ejecutada")                                       
 
-        print("ONCHANGE DESPACHO:")
+        debug("ONCHANGE DESPACHO:")
 
         print(
             selects[5].get_attribute("onchange")
@@ -574,7 +574,7 @@ def consultar_publicaciones(
 
         time.sleep(5)
 
-        print("PASO 6")
+        debug("PASO 6")
 
         print("✅ Especialidad seleccionada")
 
@@ -596,12 +596,12 @@ def consultar_publicaciones(
 
         print()
 
-        print("VALUE DEP:", selects[1].get_attribute("value"))
-        print("VALUE MUN:", selects[2].get_attribute("value"))
-        print("VALUE ENT:", selects[3].get_attribute("value"))
-        print("VALUE ESP:", selects[4].get_attribute("value"))
+        debug("VALUE DEP:", selects[1].get_attribute("value"))
+        debug("VALUE MUN:", selects[2].get_attribute("value"))
+        debug("VALUE ENT:", selects[3].get_attribute("value"))
+        debug("VALUE ESP:", selects[4].get_attribute("value"))
 
-        print("\n===========================================\n")
+        debug("\n===========================================\n")
         
         
         # ======================================
@@ -610,7 +610,7 @@ def consultar_publicaciones(
 
         print("⏳ Esperando carga de despachos...")
 
-        WebDriverWait(driver, 5).until(
+        WebDriverWait(driver, Settings.WAIT_SHORT).until(
             lambda d: len(d.find_elements(By.TAG_NAME, "select")) >= 6
         )
 
@@ -637,7 +637,7 @@ def consultar_publicaciones(
 
         try:
         
-            WebDriverWait(driver,30).until(
+            WebDriverWait(driver, Settings.WAIT_LONG).until(
 
                 lambda d: len(
 
@@ -722,7 +722,7 @@ def consultar_publicaciones(
 
             print(opt.text)
 
-        print("\n===========================================\n")
+        debug("\n===========================================\n")
 
         for opt in select_despacho.options:
 

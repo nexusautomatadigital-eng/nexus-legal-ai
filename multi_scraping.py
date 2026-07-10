@@ -4,7 +4,7 @@ import pandas as pd
 import psycopg2
 import hashlib
 from utils.logger import *
-from datetime import datetime
+from core.helpers import ahora
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -704,7 +704,7 @@ for _, row in df_procesos.iterrows():
 
                     "departamento": departamento_detectado,
 
-                    "fecha_consulta": str(datetime.now())
+                    "fecha_consulta": str(ahora())
 
                 },
 
