@@ -8,16 +8,15 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as components
+from services.db import get_connection
 from services.db import (
-    get_connection,
     get_vigilancias_cliente
 )
 
+from services.db import get_connection
 from services.db import (
 
-    get_connection,
     get_vigilancias_cliente,
-
     get_total_vigilancias,
     get_total_alertas,
     get_total_actuaciones,
@@ -1050,19 +1049,23 @@ with st.form(
 # CONSULTAR PROCESOS
 # =========================================
 
-df = pd.read_sql("""                 
-                
-SELECT *
-FROM procesos
-WHERE cliente = %s
-ORDER BY id DESC
+from domain.proceso_service import ProcesoService
 
-""", conn, params=(cliente_logueado,))
+service = ProcesoService()
+
+df = service.get_procesos_dataframe(cliente_logueado)
+
+#df = pd.read_sql("""                 
+                
+#SELECT *
+#FROM procesos
+#WHERE cliente = %s
+#ORDER BY id DESC
+
+#""", conn, params=(cliente_logueado,))
 
 print("ESTADO DF")
-print(
-    df[["id","estado"]]
-)
+print(df)
 
 conn.close()
 

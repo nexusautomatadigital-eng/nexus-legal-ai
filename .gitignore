@@ -1,13 +1,29 @@
-.env
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
 
+# Virtual environments
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit
 .streamlit/secrets.toml
 
-__pycache__/
+# Environment
+.env
 
-*.pyc
+# Logs
+*.log
 
-chromedriver.exe
-
-error_*.png
-
-test_*.py
+# OS
+Thumbs.db
+.DS_Store
+# Logs
+logs/
+*.log
+*.py[cod]
