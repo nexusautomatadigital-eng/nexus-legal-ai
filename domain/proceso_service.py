@@ -10,15 +10,25 @@ class ProcesoService:
 
     def get_procesos(self, cliente_id):
 
-        return self.repository.get_by_cliente(cliente_id)
+        print(f"[DEBUG] cliente_id={cliente_id}")
+        procesos = self.repository.get_by_cliente(cliente_id)
+
+        print(f"[DEBUG] tipo={type(procesos)}")
+        print(f"[DEBUG] cantidad={len(procesos) if procesos is not None else 'None'}")
+
+        return procesos
 
     def get_procesos_dataframe(self, cliente_id):
 
         procesos = self.get_procesos(cliente_id)
 
+        print("ANTES DEL FOR")
+
         data = []
 
         for proceso in procesos:
+
+            print(proceso)
 
             data.append({
 
