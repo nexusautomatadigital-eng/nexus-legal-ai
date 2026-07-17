@@ -439,3 +439,49 @@ Eliminar la primera consulta SQL directa del Dashboard.
 - Se mantiene compatibilidad temporal con Pandas durante la transición.
 
 Estado: ✅ Sprint completado.
+
+# Changelog
+
+## Sprint 11.1
+
+### Added
+- Nuevo modelo Proceso basado en procesos_v2.
+
+### Changed
+- Se elimina dependencia de Health y Actividad del modelo.
+
+### Notes
+- El modelo ahora representa exactamente la estructura persistente de la BD.
+
+Sprint 11.3
+
+Changed
+
+ProcesoService reconstruido para la arquitectura V2.
+Eliminadas las dependencias de HealthEngine y Actividad.
+Eliminada la lógica basada en índices de tuplas (row[n]).
+
+Architecture
+
+El flujo queda establecido como:
+Dashboard → ProcesoService → ProcesoRepository → procesos_v2
+
+Sprint 11.4 (Inicio)
+
+Objetivo
+
+Migrar la sesión del usuario para utilizar cliente_id como identificador principal.
+
+Motivo
+
+El repositorio ya trabaja con procesos_v2.
+procesos_v2 está relacionado con clientes mediante cliente_id.
+El Dashboard debe dejar de depender del nombre del cliente para realizar consultas.
+
+Sprint 11.4
+Fixed
+El Dashboard deja de utilizar st.session_state.nombre como identificador para las consultas.
+Las consultas pasan a utilizar st.session_state.cliente_id, alineándose con la relación clientes.id → procesos_v2.cliente_id.
+Architecture
+La autenticación no requirió cambios porque ya almacenaba correctamente el cliente_id.
+El cambio se realizó únicamente en la capa de presentación.

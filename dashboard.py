@@ -582,6 +582,7 @@ if st.session_state.logueado == False:
     st.stop()
 
 cliente_logueado = st.session_state.nombre
+nombre_cliente = st.session_state.nombre
 plan_cliente = st.session_state.plan
 email_cliente = st.session_state.email
 whatsapp_cliente = st.session_state.whatsapp

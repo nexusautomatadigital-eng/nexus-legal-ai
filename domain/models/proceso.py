@@ -1,21 +1,34 @@
 from dataclasses import dataclass
-
-from domain.models.health import Health
-
-from domain.models.actividad import Actividad
+from datetime import datetime
+from typing import Optional
 
 
 @dataclass
 class Proceso:
-
     id: str
 
-    numero: str
+    cliente_id: Optional[int]
 
-    cliente: str
+    numero_proceso: str
 
-    plan: str
+    despacho: Optional[str]
 
-    health: Health
+    especialidad: Optional[str]
 
-    actividad: Actividad
+    demandante: Optional[str]
+
+    demandado: Optional[str]
+
+    estado_proceso: Optional[str]
+
+    ultima_actuacion: Optional[str]
+
+    fecha_ultima_actuacion: Optional[str]
+
+    ultima_revision: Optional[datetime]
+
+    fuente: Optional[str]
+
+    jurisdiccion: Optional[str]
+
+    activo: bool
