@@ -581,18 +581,25 @@ if st.session_state.logueado == False:
     st.warning("Debe iniciar sesión")
     st.stop()
 
-cliente_logueado = st.session_state.nombre
+# ID interno del cliente (se usa para consultar la BD)
+cliente_logueado = st.session_state.cliente_id
+
+# Datos para mostrar en pantalla
 nombre_cliente = st.session_state.nombre
 plan_cliente = st.session_state.plan
 email_cliente = st.session_state.email
 whatsapp_cliente = st.session_state.whatsapp
+
+# ===== DEBUG TEMPORAL =====
+st.write("cliente_logueado:", cliente_logueado)
+st.write("tipo:", type(cliente_logueado).__name__)
 
 # =========================================
 # SIDEBAR LOGUEADO
 # =========================================
 
 st.sidebar.success(
-    f"Bienvenido {cliente_logueado}"
+    f"Bienvenido {nombre_cliente}"
 )
 
 st.sidebar.info(
