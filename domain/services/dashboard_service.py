@@ -18,7 +18,16 @@ class DashboardService:
         self.proceso_service = ProcesoService()
 
     def get_dashboard_dataframe(self, cliente_id):
-        """
-        Retorna el DataFrame principal del Dashboard.
-        """
-        return self.proceso_service.get_procesos_dataframe(cliente_id)
+        df = self.proceso_service.get_procesos_dataframe(cliente_id)
+
+        # Compatibilidad temporal Dashboard V1
+        if not df.empty:
+
+            df = df.rename(columns={
+                "estado_proceso": "estado",
+                "despacho": "juzgado",
+                "fecha_ultima_actuacion": "fecha_actuacion",
+                "ultima_revision": "fecha_consulta"
+            })
+
+        return df
