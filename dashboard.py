@@ -7,6 +7,7 @@ import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from streamlit_autorefresh import st_autorefresh
+from domain.services.dashboard_service import DashboardService
 import streamlit.components.v1 as components
 from services.db import get_connection
 from services.db import (
@@ -660,9 +661,22 @@ with col4:
 
     )
 
-service = DashboardService()
+st.write("Antes de crear DashboardService")
 
-df = service.get_dashboard_dataframe(cliente_logueado)
+try:
+    service = DashboardService()
+    st.write("DashboardService creado correctamente")
+
+    df = service.get_dashboard_dataframe(cliente_logueado)
+    st.write("DataFrame creado correctamente")
+    st.write(df)
+
+except Exception as e:
+    st.error(f"Tipo de error: {type(e).__name__}")
+    st.error(f"Mensaje: {e}")
+    import traceback
+    st.code(traceback.format_exc())
+    st.stop()
 
 # =========================================
 # CONTADOR PLAN
@@ -1051,7 +1065,7 @@ with st.form(
 # CONSULTAR PROCESOS
 # =========================================
 
-from domain.services.dashboard_service import DashboardService
+
 
 st.write("cliente_id:", cliente_logueado)
 st.write(type(cliente_logueado))
