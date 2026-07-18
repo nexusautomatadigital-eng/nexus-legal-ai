@@ -660,21 +660,15 @@ with col4:
 
     )
 
+service = DashboardService()
 
+df = service.get_dashboard_dataframe(cliente_logueado)
 
 # =========================================
 # CONTADOR PLAN
 # =========================================
 
-cursor.execute("""
-
-SELECT COUNT(*)
-FROM procesos
-WHERE cliente = %s
-
-""", (cliente_logueado,))
-
-total_procesos = cursor.fetchone()[0]
+total_procesos = len(df)
 
 limite_plan = LIMITES.get(
     plan_cliente,
