@@ -1050,12 +1050,13 @@ with st.form(
 # CONSULTAR PROCESOS
 # =========================================
 
-from domain.proceso_service import ProcesoService
+from domain.services.dashboard_service import DashboardService
 
 st.write("cliente_id:", cliente_logueado)
 st.write(type(cliente_logueado))
 
-service = ProcesoService()
+service = DashboardService()
+df = service.get_dashboard_dataframe(cliente_logueado)
 
 procesos = service.get_procesos(cliente_logueado)
 

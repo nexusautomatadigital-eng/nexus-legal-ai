@@ -485,3 +485,14 @@ Las consultas pasan a utilizar st.session_state.cliente_id, alineándose con la 
 Architecture
 La autenticación no requirió cambios porque ya almacenaba correctamente el cliente_id.
 El cambio se realizó únicamente en la capa de presentación.
+Sprint 12.1
+
+Objetivo
+
+Crear la estructura de paquetes de la arquitectura V2 sin modificar el comportamiento del sistema.
+
+Resultado esperado
+
+Nuevos paquetes (services, dto) preparados.
+Sin cambios en los imports existentes.
+Riesgo de regresión prácticamente nulo.
