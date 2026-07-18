@@ -9,6 +9,10 @@ class ProcesoRepository(BaseRepository):
 
     def get_by_cliente(self, cliente_id):
 
+        print("=" * 60)
+        print("CLIENTE_ID:", cliente_id)
+        print("TIPO:", type(cliente_id))
+
         cursor = self.conn.cursor()
 
         cursor.execute(
@@ -36,6 +40,8 @@ class ProcesoRepository(BaseRepository):
         )
 
         rows = cursor.fetchall()
+        print("ROWS:", len(rows))
+        print(rows[:2])   # muestra solo los dos primeros registros
 
         cursor.close()
 

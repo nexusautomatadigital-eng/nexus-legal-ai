@@ -1052,9 +1052,17 @@ with st.form(
 
 from domain.proceso_service import ProcesoService
 
+st.write("cliente_id:", cliente_logueado)
+st.write(type(cliente_logueado))
+
 service = ProcesoService()
 
-df = service.get_procesos_dataframe(cliente_logueado)
+procesos = service.get_procesos(cliente_logueado)
+
+st.write(type(procesos))
+st.write(procesos)
+
+st.stop()
 
 #df = pd.read_sql("""                 
                 
