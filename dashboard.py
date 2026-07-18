@@ -1065,29 +1065,9 @@ with st.form(
 # CONSULTAR PROCESOS
 # =========================================
 
-
-
-st.write("cliente_id:", cliente_logueado)
-st.write(type(cliente_logueado))
-
 service = DashboardService()
+
 df = service.get_dashboard_dataframe(cliente_logueado)
-
-procesos = service.get_procesos(cliente_logueado)
-
-st.write(type(procesos))
-st.write(procesos)
-
-st.stop()
-
-#df = pd.read_sql("""                 
-                
-#SELECT *
-#FROM procesos
-#WHERE cliente = %s
-#ORDER BY id DESC
-
-#""", conn, params=(cliente_logueado,))
 
 print("ESTADO DF")
 print(df)
