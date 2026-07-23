@@ -81,7 +81,9 @@ def save_proceso_v2(payload):
         print(payload.get("fuente"))
         print(hash_proceso)
 
-        print(payload)   
+        print(payload)
+
+        print("DEBUG A")   
         
         cur.execute("""
                     
@@ -90,21 +92,21 @@ def save_proceso_v2(payload):
                 numero_proceso,
                 hash_consulta,
                 hash_proceso
-
             from procesos_v2
-
-            where numero_proceso = %s
-            
+            where numero_proceso = %s            
             limit 1
 
         """, (
 
-            numero_proceso
-            
+            numero_proceso            
 
         ))
 
+        print("DEBUG B")
+
         existente = cur.fetchone()
+
+        print("DEBUG C")
 
         print("DEBUG EXISTENTE:", existente)
         
