@@ -330,7 +330,7 @@ for _, row in df_procesos.iterrows():
 
     numero_proceso = row["numero_proceso"]
 
-    fecha_guardada = row["fecha_actuacion"]
+    fecha_guardada = row["fecha_ultima_actuacion"]
 
     hash_anterior = row["hash_consulta"]
 
