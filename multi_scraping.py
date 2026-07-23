@@ -281,15 +281,7 @@ ORDER BY p.created_at DESC
 LIMIT 20
 
 
-#query = """
-
-#SELECT *
-
-#FROM procesos
-
-#ORDER BY id DESC
-
-#"""
+"""
 
 df_procesos = pd.read_sql(
     query,
@@ -301,8 +293,8 @@ print(df_procesos)
 print("\n🚀 TOTAL PENDIENTES")
 print(len(df_procesos))
 
-print("\n🚀 ESTADOS")
-print(df_procesos["estado"].value_counts())
+#print("\n🚀 ESTADOS")
+#print(df_procesos["estado"].value_counts())
 
 # =========================================
 # VALIDAR PROCESOS
