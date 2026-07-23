@@ -351,22 +351,23 @@ for _, row in df_procesos.iterrows():
             # ACTUALIZAR ESTADO
             # =====================================
 
-            cursor.execute("""
+            # Temporalmente deshabilitado durante la migración a V2
+            #cursor.execute("""
 
-            UPDATE procesos
+            #UPDATE procesos
 
-            SET estado = 'CONSULTANDO'
+            #SET estado = 'CONSULTANDO'
 
-            WHERE id = %s
+            #WHERE id = %s
 
-            """, (
+            #""", (
 
-                proceso_id,
+                #proceso_id,
 
-            ))
+            #))
 
-            conn.commit()
-
+            #conn.commit()
+            
             print("🔄 ESTADO CONSULTANDO")
             print("ID:", proceso_id)
 
@@ -395,21 +396,7 @@ for _, row in df_procesos.iterrows():
 
                 )
 
-                cursor.execute("""
-
-                UPDATE procesos
-
-                SET estado='REINTENTAR'
-
-                WHERE id=%s
-
-                """, (
-
-                    proceso_id,
-
-                ))
-
-                conn.commit()
+                print("⏭️ Se omite estado REINTENTAR (V2)")
 
                 continue
 
@@ -491,22 +478,7 @@ for _, row in df_procesos.iterrows():
 
                 print("❌ Proceso no encontrado")
 
-                cursor.execute("""
-
-                UPDATE procesos
-
-                SET estado = 'ERROR'
-
-                WHERE id = %s
-
-                """, (
-
-                    proceso_id,
-
-                ))
-
-                conn.commit()
-
+                print("⏭️ Se omite estado ERROR (V2)")
                 continue
 
             # =====================================
@@ -655,25 +627,7 @@ for _, row in df_procesos.iterrows():
 
             demandado = lineas[5]
 
-            cursor.execute("""
-
-            UPDATE procesos
-
-            SET fuente_rama = TRUE
-
-            WHERE id = %s
-
-            """, (
-
-                proceso_id,
-
-            ))
-
-            print("ROWCOUNT:", cursor.rowcount)
-
-            conn.commit()
-
-            print("✅ FUENTE RAMA ACTUALIZADA")
+            print("⏭️ Se omite actualización de fuente_rama (V2)")
             print("ID:", proceso_id)
 
             actualizar_estado_fuente(
@@ -1295,30 +1249,13 @@ Ingrese al dashboard para revisar detalles.
             if intento < 2:
                 continue
 
-            try:
+            
 
-                cursor.execute("""
+            print("⏭️ Se omite estado REINTENTAR (V2)")
 
-                UPDATE procesos
+            
 
-                SET estado = 'REINTENTAR'
-
-                WHERE id = %s
-
-                """, (
-
-                    proceso_id,
-
-                ))
-
-                conn.commit()
-
-                print("⚠️ Proceso marcado como REINTENTAR")
-
-            except Exception as db_error:
-
-                print("❌ Error actualizando BD")
-                print(db_error)
+            
 
 # =========================================
 # FINALIZAR
