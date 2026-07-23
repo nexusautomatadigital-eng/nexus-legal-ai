@@ -92,13 +92,13 @@ def save_proceso_v2(payload):
 
             from procesos_v2
 
-            where hash_proceso = %s
+            where numero_proceso = %s
             
             limit 1
 
         """, (
 
-            hash_proceso,
+            numero_proceso
             
 
         ))
