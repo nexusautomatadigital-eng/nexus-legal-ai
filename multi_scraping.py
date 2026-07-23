@@ -252,17 +252,33 @@ driver.set_page_load_timeout(120)
 
 query = """
 
-SELECT *
+SELECT
 
-FROM procesos
+    p.id,
+    p.numero_proceso,
+    p.hash_consulta,
+    p.ultima_actuacion,
+    p.fecha_ultima_actuacion,
+    p.fuente,
+    p.especialidad,
+    p.cliente_id,
 
-WHERE estado = 'PENDIENTE'
+    c.nombre AS cliente,
+    c.email,
+    c.whatsapp,
+    c.plan
 
-ORDER BY id DESC
+FROM procesos_v2 p
+
+JOIN clientes c
+
+    ON c.id = p.cliente_id
+
+WHERE p.activo = TRUE
+
+ORDER BY p.created_at DESC
 
 LIMIT 20
-
-"""
 
 
 #query = """

@@ -824,11 +824,11 @@ def get_cliente_proceso(
                 c.whatsapp,
                 c.plan
 
-            FROM procesos p
+            FROM procesos_v2 p
 
             JOIN clientes c
 
-                ON c.nombre = p.cliente
+                ON c.id = p.cliente_id
 
             WHERE p.numero_proceso = %s
 
@@ -879,7 +879,7 @@ def get_proceso_padre(
 
             SELECT id
 
-            FROM procesos
+            FROM procesos_v2
 
             WHERE numero_proceso = %s
 

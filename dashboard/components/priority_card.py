@@ -3,40 +3,82 @@ import streamlit as st
 
 def render_priority_card(prioridad):
 
+    if prioridad is None:
+
+        st.info("✅ No existen prioridades para hoy.")
+        return
+
     st.markdown(
-f"""
+        f"""
 <div style="
-background:#FFF8E7;
-border-left:8px solid #F59E0B;
-border-radius:16px;
-padding:24px;
-margin-bottom:25px;
-box-shadow:0 4px 12px rgba(0,0,0,.08);
+background: linear-gradient(135deg,#FFF8E1,#FFFDF8);
+border-left:10px solid #F59E0B;
+border-radius:18px;
+padding:30px;
+margin-top:10px;
+margin-bottom:20px;
+box-shadow:0 8px 24px rgba(0,0,0,.08);
 ">
 
-<h3 style="margin-top:0;">
-🚨 PRIORIDAD DEL DÍA
-</h3>
+<div style="font-size:26px;font-weight:700;margin-bottom:25px;">
+⚠ PRIORIDAD DEL DÍA
+</div>
 
-<p><b>Cliente:</b> {prioridad.cliente}</p>
+<div style="font-size:14px;color:#777;">
+EXPEDIENTE
+</div>
 
-<p><b>Proceso:</b> {prioridad.numero_proceso}</p>
+<div style="
+font-size:28px;
+font-weight:700;
+margin-bottom:25px;
+color:#111827;
+">
+{prioridad.numero_proceso}
+</div>
 
-<p><b>Evento:</b> {prioridad.evento}</p>
+<div style="
+font-size:22px;
+font-weight:600;
+margin-bottom:10px;
+color:#DC2626;
+">
+{prioridad.evento}
+</div>
 
-<p><b>Fecha:</b> {prioridad.fecha}</p>
-
-<p><b>Fuente:</b> {prioridad.fuente}</p>
-
-<hr>
-
-<b>Acción recomendada</b>
-
-<br><br>
-
+<div style="
+font-size:18px;
+margin-bottom:30px;
+color:#374151;
+">
 {prioridad.accion}
+</div>
+
+<div style="
+background:#FFFFFF;
+border-radius:12px;
+padding:15px;
+border:1px solid #E5E7EB;
+margin-bottom:20px;
+">
+
+<b>Estado</b><br>
+
+Impacto:
+<b>{prioridad.impacto}</b>
+
+</div>
 
 </div>
 """,
         unsafe_allow_html=True,
     )
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col2:
+        st.button(
+            "📂 Abrir expediente",
+            use_container_width=True,
+            type="primary"
+        )

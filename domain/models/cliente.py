@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import date
 
 
 @dataclass
@@ -7,8 +6,12 @@ class Cliente:
 
     id: int
 
+    usuario: str
+
     nombre: str
 
     email: str
+
+    whatsapp: str
 
     plan: str

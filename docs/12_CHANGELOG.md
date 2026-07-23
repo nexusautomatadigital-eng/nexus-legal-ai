@@ -496,3 +496,104 @@ Resultado esperado
 Nuevos paquetes (services, dto) preparados.
 Sin cambios en los imports existentes.
 Riesgo de regresión prácticamente nulo.
+
+# Sprint 13.1
+## Fecha
+2026-06-14
+
+### Nuevo
+
+- Se crea Executive Brief como nueva cabecera del Command Center.
+- ExecutiveService incorpora el método get_executive_brief().
+- Se unifica la información ejecutiva para el Dashboard.
+- Se personaliza el saludo del abogado.
+- Se agrega resumen ejecutivo del despacho.
+
+### Mejoras
+
+- Se desacopla parcialmente la construcción del Dashboard.
+- Se prepara la integración con Priority Card.
+- Se prepara la evolución hacia Command Center.
+
+### Impacto
+
+El abogado recibe un resumen ejecutivo inmediatamente después del login en lugar de únicamente KPIs.
+
+## Sprint 13.1 - Executive Brief
+
+### Nuevas funcionalidades
+- Se implementa ExecutiveService.get_executive_brief().
+- Se crea el componente Executive Brief.
+- Se integra el resumen ejecutivo en el Command Center.
+
+### Arquitectura
+- ExecutiveService ahora utiliza PriorityService.
+- PriorityService recibe cliente_id.
+- Se inicializa correctamente PriorityEngine.
+
+### Calidad
+- Se crea test_executive_service.py.
+- Primera prueba unitaria del ExecutiveService superada.
+# Changelog
+
+Todas las modificaciones importantes del proyecto serán registradas aquí.
+
+---
+
+# v0.13.0
+Fecha: 19 Julio 2026
+
+## Sprint 13 - Estabilización del Dominio y Executive Dashboard
+
+### Arquitectura
+
+- Se consolidó la arquitectura basada en Servicios + Repositories.
+- El Dashboard dejó de depender de consultas SQL directas.
+- Se incorporó SessionService como punto único de acceso al contexto del usuario.
+- Se implementó bootstrap_dev_session() para desarrollo local.
+
+### Dominio
+
+Se estabilizaron los siguientes servicios:
+
+- ExecutiveService
+- PriorityService
+- ProcesoService
+
+Se adaptó PriorityEngine al nuevo modelo Proceso V2.
+
+Se eliminaron las dependencias al modelo antiguo:
+
+- proceso.actividad
+- proceso.numero
+- proceso.cliente
+
+Ahora el motor utiliza exclusivamente el modelo Proceso actual.
+
+### Testing
+
+Se agregaron pruebas para ExecutiveService.
+
+Resultado:
+
+PASS
+tests/test_executive_service.py
+
+### Dashboard
+
+Se integró Executive Brief.
+
+Se implementaron:
+
+- KPIs
+- Executive Summary
+- Priority Card
+- Recent Events
+
+El Dashboard quedó completamente funcional utilizando la arquitectura del dominio.
+
+### Estado
+
+Sprint 13 finalizado.
+
+El proyecto entra en la etapa de UX del Command Center.

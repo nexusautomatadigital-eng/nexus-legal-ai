@@ -16,8 +16,10 @@ class ClienteRepository(BaseRepository):
             """
             SELECT
                 id,
+                usuario,
                 nombre,
                 email,
+                whatsapp,
                 plan                
             FROM clientes
             WHERE usuario = %s
@@ -34,9 +36,37 @@ class ClienteRepository(BaseRepository):
 
         return Cliente(
             id=row[0],
-            nombre=row[1],
-            email=row[2],
-            plan=row[3]
+            usuario=row[1],
+            nombre=row[2],
+            email=row[3],
+            whatsapp=row[4],
+            plan=row[5]
         )
+    
+    def get_login_data(self, usuario):
+
+        cursor = self.conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                id,
+                usuario,
+                password,
+                nombre,
+                email,
+                whatsapp,
+                plan
+            FROM clientes
+            WHERE usuario = %s
+            """,
+            (usuario,)
+        )
+
+        row = cursor.fetchone()
+
+        cursor.close()
+
+        return row
 
 

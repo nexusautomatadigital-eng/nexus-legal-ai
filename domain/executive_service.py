@@ -11,6 +11,8 @@ class ExecutiveService:
 
         self.cliente_id = cliente_id
 
+        self.priority_service = PriorityService(cliente_id)
+
     def get_kpis(self):
 
         cursor = self.conn.cursor()
@@ -200,3 +202,34 @@ class ExecutiveService:
             })
 
         return events
+    
+    def get_executive_brief(self):
+
+        kpis = self.get_kpis()
+
+        prioridad = self.get_priority()
+
+        return {
+
+            "greeting": "Buenos días",
+
+            "last_sync": "Hace unos minutos",
+
+            "critical": 1 if prioridad else 0,
+
+            "important": max(kpis["actuaciones"], 0),
+
+            "stable": max(
+                kpis["procesos"]
+                - kpis["publicaciones"]
+                - kpis["actuaciones"],
+                0
+            ),
+
+            "estimated_time": 12,
+
+            "summary": self.get_summary(),
+
+            "priority": prioridad
+
+        }

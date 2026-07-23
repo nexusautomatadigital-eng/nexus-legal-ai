@@ -4,10 +4,16 @@ import psycopg2
 import bcrypt
 import time
 import requests
+from domain.auth_service import AuthService
+from core.session_service import SessionService
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from streamlit_autorefresh import st_autorefresh
 from domain.services.dashboard_service import DashboardService
+from dashboard.pages.command_center import render_command_center
+from components.sidebar import render_sidebar
+from dashboard.pages.mis_procesos import render_mis_procesos
+from dashboard.auth.onboarding import render_onboarding
 import streamlit.components.v1 as components
 from services.db import get_connection
 from services.db import (
@@ -464,109 +470,79 @@ if not st.session_state.logueado:
 
     if ingresar:
 
-        cursor.execute("""
+        auth = AuthService()
 
-        SELECT *
-        FROM clientes
-        WHERE usuario = %s
+        cliente = auth.login(
+            usuario_login,
+            password_login
 
-        """, (usuario_login,))
+        )
 
-        resultado = cursor.fetchone()
-
-        if not resultado:
+        if cliente is None:
 
             st.sidebar.error(
-                "❌ Usuario inválido"
-            )
-
+                "❌ Usuario o contraseña incorrectos"
+            )       
+        
         else:
 
-            password_guardado = resultado[2]
+            SessionService.create_session(cliente)
 
-            password_correcto = bcrypt.checkpw(
+            st.success("✅ Bienvenido a Nexus Legal AI")
 
-                password_login.encode(),
-                password_guardado.encode()
+            time.sleep(1)
 
-            )
+            st.rerun() 
 
-            if password_correcto:
-
-                st.session_state.logueado = True
-                st.session_state.cliente_id = resultado[0]
-                
-                st.success(
-                    f"CLIENTE ID: {st.session_state.cliente_id}"
-                )
-                st.session_state.usuario = resultado[1]
-                st.session_state.nombre = resultado[3]
-                st.session_state.email = resultado[4]
-                st.session_state.whatsapp = resultado[5]
-                st.session_state.plan = resultado[6]
-
-                st.success("✅ Bienvenido a Nexus Legal AI")
-                time.sleep(1)
-
-                st.rerun()
-
-            else:
-
-                st.sidebar.error(
-                    "❌ Password incorrecto"
-                )
-
+           
     st.stop()
 
 # =========================================
 # HERO NEXUS
 # =========================================
 
-st.markdown("""
+#st.markdown("""
 
-<div style="
-background:linear-gradient(135deg,#0f172a,#1e293b);
-padding:25px;
-border-radius:20px;
-margin-bottom:25px;
-color:white;
-">
+#<div style="
+#background:linear-gradient(135deg,#0f172a,#1e293b);
+#padding:25px;
+#border-radius:20px;
+#margin-bottom:25px;
+#color:white;
+#">
 
-<h1 style="margin:0;">
-⚖️ Nexus Legal AI
-</h1>
+#<h1 style="margin:0;">
+#⚖️ Nexus Legal AI
+#</h1>
 
-<h3 style="color:#93c5fd;">
-Centro de Vigilancia Procesal Inteligente
-</h3>
+#<h3 style="color:#93c5fd;">
+#Centro de Vigilancia Procesal Inteligente
+#</h3>
 
-<p style="font-size:18px;">
+#<p style="font-size:18px;">
 
-Monitoreamos automáticamente:
-<br><br>
-✅ Rama Judicial
-<br>
-✅ SAMAI
-<br>
-✅ Publicaciones Procesales
-<br><br>
-🚨 Detectamos cambios
+#Monitoreamos automáticamente:
+#<br><br>
+#✅ Rama Judicial
+#<br>
+#✅ SAMAI
+#<br>
+#✅ Publicaciones Procesales
+#<br><br>
+#🚨 Detectamos cambios
 
-📄 Seguimos actuaciones
+#📄 Seguimos actuaciones
 
-📎 Monitoreamos documentos
+#📎 Monitoreamos documentos
 
-📲 Notificamos por Email y WhatsApp
+#📲 Notificamos por Email y WhatsApp
 
-</p>
+#</p>
 
-</div>
+#</div>
 
-""", unsafe_allow_html=True)
+#""", unsafe_allow_html=True)
 
-# =========================================
-# DASHBOARD
-# =========================================
 
 # =========================================
 # VALIDACIÓN SEGURIDAD
@@ -591,92 +567,86 @@ plan_cliente = st.session_state.plan
 email_cliente = st.session_state.email
 whatsapp_cliente = st.session_state.whatsapp
 
-# ===== DEBUG TEMPORAL =====
-st.write("cliente_logueado:", cliente_logueado)
-st.write("tipo:", type(cliente_logueado).__name__)
 
-# =========================================
-# SIDEBAR LOGUEADO
-# =========================================
+if "pagina" not in st.session_state:
+    st.session_state.pagina = "inicio"
 
-st.sidebar.success(
-    f"Bienvenido {nombre_cliente}"
-)
+pagina = st.session_state.pagina
 
-st.sidebar.info(
-    f"Plan: {plan_cliente}"
-)
+if pagina == "inicio":
+
+    render_command_center()
+
+elif pagina == "procesos":
+
+    render_mis_procesos(
+        cliente_logueado
+    )
+
+
 
 # =========================================
 # DASHBOARD EJECUTIVO
 # =========================================
 
-st.markdown("---")
+def render_dashboard_legacy():
+    st.markdown("---")
 
-st.subheader("📊 Resumen Ejecutivo")
+    st.subheader("📊 Resumen Ejecutivo")
 
-col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
-with col1:
+    with col1:
 
-    st.metric(
+        st.metric(
 
-        "⚖️ Vigilancias",
+            "⚖️ Vigilancias",
 
-        get_total_vigilancias()           
+            get_total_vigilancias()           
         
 
-    )
+        ) 
 
-with col2:
+    with col2:
 
-    st.metric(
+        st.metric(
 
-        "🚨 Alertas",
+            "🚨 Alertas",
 
-        get_total_alertas()
+            get_total_alertas()
             
 
-    )
+        )
 
-with col3:
+    with col3:
 
-    st.metric(
+        st.metric(
 
-        "📄 Actuaciones",
+            "📄 Actuaciones",
 
-        get_total_actuaciones()
+            get_total_actuaciones()
             
 
-    )
+        )
 
-with col4:
+    with col4:
 
-    st.metric(
+        st.metric(
 
-        "📎 Documentos",
+            "📎 Documentos",
 
-        get_total_documentos()
-            
+            get_total_documentos()            
 
-    )
-
-st.write("Antes de crear DashboardService")
-
+        )
 try:
-    service = DashboardService()
-    st.write("DashboardService creado correctamente")
-
-    df = service.get_dashboard_dataframe(cliente_logueado)
-    st.write("DataFrame creado correctamente")
-    st.write(df)
+    service = DashboardService() 
+    df = service.get_dashboard_dataframe(cliente_logueado)  
 
 except Exception as e:
-    st.error(f"Tipo de error: {type(e).__name__}")
-    st.error(f"Mensaje: {e}")
-    import traceback
-    st.code(traceback.format_exc())
-    st.stop()
+    st.error(
+        "No fue posible cargar el Dashboard."
+    )
+    st.stop()    
 
 # =========================================
 # CONTADOR PLAN
@@ -689,54 +659,17 @@ limite_plan = LIMITES.get(
     1
 )
 
-st.sidebar.metric(
-    "Procesos usados",
-    f"{total_procesos}/{limite_plan}"
+
+accion = render_sidebar(
+    nombre_cliente=nombre_cliente,
+    plan_cliente=plan_cliente,
+    total_procesos=total_procesos,
+    limite_plan=limite_plan,
+    wompi_basico=WOMPI_BASICO,
+    wompi_premium=WOMPI_PREMIUM,
+    wompi_gold=WOMPI_GOLD,
 )
 
-# =========================================
-# UPGRADE
-# =========================================
-
-st.sidebar.markdown("---")
-
-st.sidebar.subheader("🚀 Mejorar Plan")
-
-if plan_cliente == "FREE":
-
-    st.sidebar.link_button(
-        "🔵 BASICO",
-        WOMPI_BASICO
-    )
-
-    st.sidebar.link_button(
-        "🟡 PREMIUM",
-        WOMPI_PREMIUM
-    )
-
-    st.sidebar.link_button(
-        "🟣 GOLD",
-        WOMPI_GOLD
-    )
-
-elif plan_cliente == "BASICO":
-
-    st.sidebar.link_button(
-        "🟡 PREMIUM",
-        WOMPI_PREMIUM
-    )
-
-    st.sidebar.link_button(
-        "🟣 GOLD",
-        WOMPI_GOLD
-    )
-
-elif plan_cliente == "PREMIUM":
-
-    st.sidebar.link_button(
-        "🟣 GOLD",
-        WOMPI_GOLD
-    )
 
 # =========================================
 # LOGOUT
@@ -752,14 +685,25 @@ if st.sidebar.button("Cerrar Sesión"):
     st.rerun()
 
 # =========================================
+# NAVEGACIÓN
+# =========================================
+
+if "pagina" not in st.session_state:
+    st.session_state.pagina = "inicio"
+pagina = st.session_state.pagina
+
+
+# =========================================
 # TITULO
 # =========================================
 
-st.title("⚖️ Nexus Legal AI")
+if pagina == "procesos":
 
-st.subheader(
-    f"Procesos judiciales de {cliente_logueado}"
-)
+    st.title("⚖️ Nexus Legal AI")
+
+    st.subheader(
+        f"Procesos judiciales de {cliente_logueado}"
+    )
 
 # =========================================
 # BIENVENIDA FREE
@@ -787,280 +731,18 @@ if total_procesos == 0:
 
     """)
 
-
-    
-# =========================================
-# AGREGAR PROCESO
-# =========================================
-
-st.subheader("➕ Agregar Proceso")
-
-with st.form(
-    "nuevo_proceso",
-    clear_on_submit=True
-):
-
-    numero_proceso = st.text_input(
-        
-        "Número proceso judicial"
-    )
-
-    numero_proceso = numero_proceso.strip()
-
-    agregar = st.form_submit_button(
-        "Agregar Proceso"
-    )
-
-    if agregar:
-
-        if not numero_proceso.strip():
-
-            st.warning(
-                "⚠️ Ingrese un proceso"
-            )
-
-        else:
-
-            if total_procesos >= limite_plan:
-
-                st.error(
-                    f"❌ Tu plan {plan_cliente} permite máximo {limite_plan} procesos"
-                )
-
-            else:
-
-                cursor.execute("""
-
-                SELECT id
-                FROM procesos
-                WHERE cliente = %s
-                AND numero_proceso = %s
-
-                """, (
-
-                    cliente_logueado,
-                    numero_proceso
-
-                ))
-
-                existe = cursor.fetchone()
-
-                if existe:
-
-                    st.warning(
-                        "⚠️ El proceso ya existe"
-                    )
-
-                else:
-
-                    cursor.execute("""
-
-                    INSERT INTO procesos (
-
-                        cliente,
-                        email,
-                        whatsapp,
-                        plan,
-                        numero_proceso,
-                        estado
-
-                    )
-
-                    VALUES (%s,%s,%s,%s,%s,%s)
-
-                    """, (
-
-                        cliente_logueado,
-                        email_cliente,
-                        whatsapp_cliente,
-                        plan_cliente,
-                        numero_proceso,
-                        "PENDIENTE"
-
-                    ))
-
-                    conn.commit()
-
-                    st.session_state.primer_proceso = True
-
-
-
-                    placeholder = st.empty()
-
-                    with placeholder.container():
-
-                        st.info("""
-                    🤖 Nexus está analizando tu proceso.
-
-                    ⏳ Consultando Rama Judicial
-
-                    ⏳ Consultando Publicaciones Procesales
-
-                    ⏳ Consultando SAMAI
-
-                    ⏳ Generando historial procesal
-
-                    Tiempo estimado: 30 a 60 segundos.
-                    """)
-
-                    # ======================================
-                    # DISPARAR NEXUS ENGINE INMEDIATO
-                    # ======================================
-
-                    try:
-
-                        print("🚀 INICIANDO DISPATCH")
-
-                        github_token = st.secrets["GITHUB_TOKEN"]
-                        print("TOKEN OK")
-
-                        github_user = st.secrets["GITHUB_USER"]
-                        print("USER OK")
-
-                        github_repo = st.secrets["GITHUB_REPO"]
-                        print("REPO OK")
-
-                    except Exception as e:
-
-                        print("ERROR:", e)
-
-                    try:
-
-                        print("🚀 INICIANDO DISPATCH GITHUB")
-
-                        github_token = st.secrets["GITHUB_TOKEN"]
-
-                        github_user = st.secrets["GITHUB_USER"]
-
-                        github_repo = st.secrets["GITHUB_REPO"]
-
-                        print("USER:", github_user)
-
-                        print("REPO:", github_repo)
-
-                        url = f"https://api.github.com/repos/{github_user}/{github_repo}/actions/workflows/nexus_engine.yml/dispatches"
-
-                        headers = {
-
-                            "Authorization": f"Bearer {github_token}",
-
-                            "Accept": "application/vnd.github+json"
-
-                        }
-
-                        data = {
-
-                            "ref": "main"
-
-                        }
-
-                        response = requests.post(
-
-                            url,
-
-                            headers=headers,
-
-                            json=data
-
-                        )
-
-                        if response.status_code == 204:
-
-                            st.success(
-                                "🚀 Nexus Engine iniciado correctamente"
-                            )
-
-                            st.info("""
-                            🔎 Nexus está procesando el expediente.
-
-                            La consulta puede tardar entre 30 y 90 segundos.
-
-                            Puede seguir navegando mientras Nexus recopila información de:
-
-                            ✓ Rama Judicial
-
-                            ✓ Publicaciones Procesales
-
-                            ✓ SAMAI
-
-                            ✓ Historial Procesal
-                            """)
-
-                        else:
-
-                            st.error(
-                                f"Error GitHub: {response.status_code}"
-                            )
-
-                        print("GitHub Status:", response.status_code)
-
-                        print("GitHub Response:", response.text)
-
-                    except Exception as e:
-
-                        print("ERROR GITHUB:", e)
-
-                        st.error(
-                            f"Error GitHub Actions: {e}"
-                        )
-                    
-                    #try:
-
-                        #github_token = st.secrets["GITHUB_TOKEN"]
-
-                        #github_user = st.secrets["GITHUB_USER"]
-
-                        #github_repo = st.secrets["GITHUB_REPO"]
-
-                        #url = f"https://api.github.com/repos/{github_user}/{github_repo}/actions/workflows/nexus_engine.yml/dispatches"
-
-                        #headers = {
-                            #"Authorization": f"Bearer {github_token}",
-                            #"Accept": "application/vnd.github+json"
-                        #}
-
-                        #data = {
-                            #"ref": "main"
-                        #}
-
-                        #response = requests.post(
-                            #url,
-                            #headers=headers,
-                            #json=data
-                        #)
-
-                        #print("GitHub Status:", response.status_code)
-
-                        #print("GitHub Response:", response.text)
-
-                        #if response.status_code in [200, 201, 204]:
-
-                            #st.info("""
-
-                            #🚀 Motor Nexus activado
-
-                            #El monitoreo comenzará en unos minutos.
-
-                            #""")
-
-                        #else:
-
-                            #st.warning("""
-
-                            #⚠️ El proceso fue registrado.
-
-                            #Nexus realizará la revisión en el siguiente ciclo automático.
-
-                        #""")
-
-                        #print("GitHub Status:", response.status_code)
-
-                    #except Exception as e:
-
-                        #st.error(f"Error GitHub Actions: {e}")
-
-                    #st.rerun()
-
+render_onboarding(
+    conn=conn,
+    cursor=cursor,
+    cliente_logueado=cliente_logueado,
+    email_cliente=email_cliente,
+    whatsapp_cliente=whatsapp_cliente,
+    plan_cliente=plan_cliente,
+    total_procesos=total_procesos,
+    limite_plan=limite_plan,
+)  
+
+                           
 # =========================================
 # CONSULTAR PROCESOS
 # =========================================
@@ -1163,9 +845,14 @@ else:
     if not df.empty:
 
         ultima_revision = df.iloc[0]["fecha_consulta"]
-        ultima_revision = ultima_revision.strftime(
-            "%d-%m-%Y %H:%M"
-        )
+
+        if ultima_revision is not None:
+            ultima_revision = ultima_revision.strftime(
+                "%d-%m-%Y %H:%M"
+            )
+        else:
+            ultima_revision = "Sin revisión"
+
 
     estado_general = "🟢 Activo"
 
@@ -1274,41 +961,8 @@ else:
         </div>
 
         """, unsafe_allow_html=True)
-
-
     
-    # =====================================
-    # METRICAS
-    # =====================================
-
-    #col1, col2, col3 = st.columns(3)
-
-    #with col1:
-
-        #st.metric(
-            #"Total Procesos",
-            #len(df)
-        #)
-
-    #with col2:
-
-        #ultima_fecha = df.iloc[0]["fecha_actuacion"]
-
-        #if ultima_fecha is None:
-            #ultima_fecha = "Sin actualizar"
-
-        #st.metric(
-            #"Última actuación",
-            #Cstr(ultima_fecha)
-        #)
-
-    #with col3:
-
-        #st.metric(
-            #"Plan",
-            #plan_cliente
-        #)
-
+    
     # =====================================
     # DASHBOARD PROCESOS PRO
     # =====================================

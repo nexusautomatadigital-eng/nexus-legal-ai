@@ -5,68 +5,53 @@ class PriorityEngine:
 
     def calculate(self, proceso):
 
+        """
+        Calcula la prioridad de un proceso utilizando únicamente
+        la información disponible en el modelo Proceso.
+        """
+
         score = 0
-
-        # Impacto inicial
         impacto = "Bajo"
-
-        evento = "Sin novedades"
-
+        evento = "Proceso monitoreado"
         accion = "Continuar monitoreo."
 
-        # Regla 1
-        if proceso.actividad.publicaciones > 0:
+        # Regla simple basada en el estado del proceso
+        estado = (proceso.estado_proceso or "").lower()
 
-            score = 40
-
+        if "sentencia" in estado:
+            score = 90
             impacto = "Alto"
+            evento = "Proceso con sentencia"
+            accion = "Revisar inmediatamente."
 
-            evento = "Nueva publicación judicial"
+        elif "audiencia" in estado:
+            score = 70
+            impacto = "Alto"
+            evento = "Audiencia programada"
+            accion = "Preparar seguimiento."
 
-            accion = "Revisar publicación inmediatamente."
-
-        # Regla 2
-        elif proceso.actividad.actuaciones > 0:
-
-            score = 25
-
+        elif "traslado" in estado:
+            score = 50
             impacto = "Medio"
-
-            evento = "Nueva actuación"
-
+            evento = "Traslado del proceso"
             accion = "Revisar actuación."
 
-        # Regla 3
-        elif proceso.actividad.documentos > 0:
-
-            score = 10
-
-            impacto = "Bajo"
-
-            evento = "Nuevo documento"
-
-            accion = "Validar documento."
-
-            
+        elif proceso.ultima_actuacion:
+            score = 30
+            impacto = "Medio"
+            evento = "Nueva actuación registrada"
+            accion = "Validar la última actuación."
 
         return Prioridad(
-
             proceso_id=proceso.id,
-
-            numero_proceso=proceso.numero,
-
-            cliente=proceso.cliente,
-
+            numero_proceso=proceso.numero_proceso,
+            cliente=str(proceso.cliente_id),
             evento=evento,
-
             impacto=impacto,
-
             accion=accion,
-
-            fecha="Hoy",
-
-            fuente="Nexus Engine",
-
+            fecha=str(proceso.fecha_ultima_actuacion)
+            if proceso.fecha_ultima_actuacion
+            else "-",
+            fuente=proceso.fuente or "Nexus Engine",
             score=score
-
         )

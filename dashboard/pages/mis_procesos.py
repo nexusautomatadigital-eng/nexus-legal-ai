@@ -3,12 +3,15 @@ import streamlit as st
 from domain.proceso_service import ProcesoService
 from dashboard.components.proceso_card import render_proceso_card
 
-st.title("⚖️ Mis Procesos")
 
-service = ProcesoService()
+def render_mis_procesos(cliente_id):
 
-procesos = service.get_procesos()
+    st.title("📂 Mis Procesos")
 
-for proceso in procesos:
+    service = ProcesoService()
 
-    render_proceso_card(proceso)
+    procesos = service.get_procesos(cliente_id)
+
+    for proceso in procesos:
+
+        render_proceso_card(proceso)
