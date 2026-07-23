@@ -2,6 +2,7 @@ import os
 import psycopg2
 import json
 import hashlib
+import traceback
 
 print("🚨 DB.PY VERSION 11 JUNIO 2026")
 print(__file__)
@@ -213,6 +214,11 @@ def save_proceso_v2(payload):
         conn.rollback()
 
         print(f"❌ ERROR PROCESO_V2: {e}")
+        traceback.print_exc()
+
+        print(f"TIPO: {type(e)}")
+        print(f"ERROR: {e}")
+
 
         # ==========================================
         # RECUPERAR PROCESO EXISTENTE
