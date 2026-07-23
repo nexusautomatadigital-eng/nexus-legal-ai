@@ -816,41 +816,12 @@ for _, row in df_procesos.iterrows():
             if cambio_detectado:
                 estado_proceso = "NUEVA ACTUACION"
 
-
-            cursor.execute("""
-
-            UPDATE procesos
-
-            SET
-
-                fecha_actuacion = %s,
-                juzgado = %s,
-                demandante = %s,
-                demandado = %s,
-                resumen_ia = %s,
-                hash_consulta = %s,           
-                estado = %s,
-                fecha_consulta = NOW(),           
-                ultima_revision = NOW()
-
-            WHERE id = %s
-
-            """, (
-
-                fecha_actuacion,
-                juzgado,
-                demandante,
-                demandado,
-                resumen_ia,
-                nuevo_hash,
-                estado_proceso,
-                proceso_id
-
-            ))
-
-            conn.commit()
+            print("⏭️ Se omite UPDATE procesos (V2)")
+            print("Estado:", estado_proceso)
+            print("Hash:", nuevo_hash)
 
             print("✅ Proceso actualizado")
+
 
             # =====================================
             # CONSULTA PUBLICACIONES
