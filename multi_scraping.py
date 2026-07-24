@@ -52,6 +52,12 @@ from services.db import (
 )
 
 # =========================================
+# VARIABLES DE ENTORNO
+# =========================================
+
+load_dotenv()
+
+# =========================================
 # PERSISTENCIA NEXUS V2
 # =========================================
 
@@ -195,6 +201,39 @@ print("OPENAI:", OPENAI_API_KEY)
 
 client = OpenAI(
     api_key=OPENAI_API_KEY
+)
+
+# =========================================
+# TWILIO
+# =========================================
+
+TWILIO_SID = os.getenv("TWILIO_SID")
+TWILIO_TOKEN = os.getenv("TWILIO_TOKEN")
+
+# =========================================
+# BREVO
+# =========================================
+
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+
+# =========================================
+# DEBUG VARIABLES
+# =========================================
+
+print("TWILIO_SID:", bool(TWILIO_SID))
+print("TWILIO_TOKEN:", bool(TWILIO_TOKEN))
+print("BREVO_API_KEY:", bool(BREVO_API_KEY))
+
+twilio_client = Client(
+    TWILIO_SID,
+    TWILIO_TOKEN
+)
+
+configuration = sib_api_v3_sdk.Configuration()
+configuration.api_key["api-key"] = BREVO_API_KEY
+
+api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+    sib_api_v3_sdk.ApiClient(configuration)
 )
 
 # =========================================
@@ -786,6 +825,7 @@ for _, row in df_procesos.iterrows():
 
                 """
 
+            
             # =====================================
             # DETECTAR CAMBIOS REALES
             # =====================================
