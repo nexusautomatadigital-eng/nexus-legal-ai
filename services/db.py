@@ -81,11 +81,7 @@ def save_proceso_v2(payload):
         print(payload.get("fuente"))
         print(hash_proceso)
 
-        print(payload)
-
-        print("DEBUG A")
-        print(type(numero_proceso))
-        print(repr(numero_proceso))  
+        print(payload)        
         
         cur.execute("""
                     
@@ -100,18 +96,16 @@ def save_proceso_v2(payload):
 
         """, (numero_proceso,))
 
-        print("DEBUG B")
-
+        
         existente = cur.fetchone()
 
-        print("DEBUG C")
         print(existente)
 
-        print("DEBUG EXISTENTE:", existente)
+        
         
         if existente:
 
-            print("⚠️ PROCESO YA EXISTE")
+            print(f"♻️ PROCESO EXISTENTE: {existente[0]}")
 
             return existente[0]
 
