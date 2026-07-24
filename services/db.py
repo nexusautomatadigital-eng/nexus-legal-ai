@@ -83,7 +83,9 @@ def save_proceso_v2(payload):
 
         print(payload)
 
-        print("DEBUG A")   
+        print("DEBUG A")
+        print(type(numero_proceso))
+        print(repr(numero_proceso))  
         
         cur.execute("""
                     
@@ -96,17 +98,14 @@ def save_proceso_v2(payload):
             where numero_proceso = %s            
             limit 1
 
-        """, (
-
-            numero_proceso            
-
-        ))
+        """, (numero_proceso,))
 
         print("DEBUG B")
 
         existente = cur.fetchone()
 
         print("DEBUG C")
+        print(existente)
 
         print("DEBUG EXISTENTE:", existente)
         
